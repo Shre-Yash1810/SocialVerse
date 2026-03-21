@@ -1,0 +1,44 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+.cache/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json (removed if you want to keep it, but usually standard)
+server_log.txt
+server_out.log
+server_output.log
+server_output_utf8.log
+server_output_utf8_v2.log
+server_output_utf8_v3.log
+output.txt
+tsc_output.txt
+tsc_output_utf8.txt
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+frontend/node_modules/
+frontend/dist/
