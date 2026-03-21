@@ -22,7 +22,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*', // Adjust for production
+    origin: 'https://social-verse-chi.vercel.app',
     methods: ['GET', 'POST'],
   },
 });
@@ -31,7 +31,10 @@ initSocket(io);
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'https://social-verse-chi.vercel.app',
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

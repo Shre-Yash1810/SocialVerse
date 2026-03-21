@@ -64,7 +64,7 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-     const socket = io({
+     const socket = io('https://social-verse-backend-w9xr.onrender.com', {
        path: '/socket.io/',
        transports: ['polling', 'websocket'],
        rejectUnauthorized: false

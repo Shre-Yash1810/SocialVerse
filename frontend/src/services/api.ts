@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.DEV ? '/api' : `http://${window.location.hostname}:5000/api`,
+  baseURL: import.meta.env.DEV ? '/api' : 'https://social-verse-backend-w9xr.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
