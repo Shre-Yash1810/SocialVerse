@@ -20,7 +20,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
   handleUnsendMessage, setSelectedMessageId, setActiveSharedContent
 }) => {
   return (
-    <div style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', gap: '8px', marginBottom: '12px' }}>
+    <div style={{ marginLeft: isMe ? 'auto' : '0', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', gap: '8px', marginBottom: '12px', width: 'fit-content' }}>
       {!isMe && (
         <div style={{ width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, alignSelf: 'flex-end', marginBottom: '4px' }}>
           <img src={msg.sender?.profilePic || `https://ui-avatars.com/api/?name=${msg.sender?.userid}&size=64`} alt="" style={{ width: '100%', height: '100%' }} />

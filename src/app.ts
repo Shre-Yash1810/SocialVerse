@@ -20,9 +20,16 @@ import momentRoutes from './routes/momentRoutes';
 
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = [
+  'https://social-verse-chi.vercel.app',
+  'http://localhost:5173',
+  'https://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: 'https://social-verse-chi.vercel.app',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
   },
 });
@@ -30,9 +37,17 @@ const io = new Server(httpServer, {
 initSocket(io);
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 app.use(cors({
-  origin: 'https://social-verse-chi.vercel.app',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(morgan('dev'));
