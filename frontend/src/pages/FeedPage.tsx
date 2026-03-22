@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
-import { Heart, MessageCircle, Share2, Bookmark, Play } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
@@ -23,6 +23,47 @@ interface Post {
   commentsCount: number;
   createdAt: string;
 }
+
+const FeedVideo: React.FC<{ src: string }> = ({ src }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.8 }
+    );
+
+    if (videoRef.current) observer.observe(videoRef.current);
+    return () => {
+      if (videoRef.current) observer.unobserve(videoRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isInView && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    } else if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [isInView]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#000' }}>
+      <video 
+        ref={videoRef}
+        src={src} 
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+        muted 
+        loop 
+        playsInline
+      />
+    </div>
+  );
+};
 
 const FeedPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -116,14 +157,7 @@ const FeedPage: React.FC = () => {
               </div>
               <div className="post-image-container" onClick={() => setActiveDetailPost(post)} style={{ cursor: 'pointer' }}>
                 {post.type === 'Image' && <img src={post.content} alt="Post content" className="post-image" />}
-                {post.type === 'Video' && (
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#000' }}>
-                    <video src={post.content} style={{ width: '100%', height: '100%', objectFit: 'contain' }} muted loop onMouseOver={e => e.currentTarget.play()} onMouseOut={e => e.currentTarget.pause()} />
-                    <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '50%' }}>
-                      <Play size={16} color="white" fill="white" />
-                    </div>
-                  </div>
-                )}
+                {post.type === 'Video' && <FeedVideo src={post.content} />}
               </div>
               <div className="post-actions">
                 <Heart 

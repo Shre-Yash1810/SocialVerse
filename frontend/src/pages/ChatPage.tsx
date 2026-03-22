@@ -148,7 +148,14 @@ const ChatPage: React.FC = () => {
 
     try {
       const res = await api.post(`/chats/${chatId}/messages`, { text: newMessage });
-      setMessages(prev => [...prev, res.data]);
+      // If the socket doesn't broadcast back to sender, keep this. 
+      // If it DOES, we should check for duplicates or just let the socket handle it.
+      // High confidence: socket.io is broadcasting back, causing double messages for sender.
+      // But let's check for existing ID to be safe if we keep it.
+      setMessages(prev => {
+        if (prev.some(m => m._id === res.data._id)) return prev;
+        return [...prev, res.data];
+      });
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -225,7 +232,7 @@ const ChatPage: React.FC = () => {
           initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
           style={{ flex: 1, padding: '20px' }}
           itemContent={(_, msg) => {
-            const isMe = msg.sender?._id === currentUser?._id;
+            const isMe = String(msg.sender?._id || msg.sender) === String(currentUser?._id);
             return (
               <MessageBubble
                 key={msg._id}

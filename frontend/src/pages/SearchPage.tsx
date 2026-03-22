@@ -13,61 +13,58 @@ const SearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [locationPerm, setLocationPerm] = useState(localStorage.getItem('nearby_active') === 'true');
   
-  // States for interactive buttons
   const [myFollowing, setMyFollowing] = useState<string[]>([]);
   const [wavedAt, setWavedAt] = useState<string[]>([]);
   const currentUserId = localStorage.getItem('userid');
 
   useEffect(() => {
-    // Fetch current user's following list and discovery status
+    const checkAndFetchNearby = async () => {
+      if (localStorage.getItem('nearby_active') !== 'true') return;
+
+      try {
+        if (navigator.permissions) {
+          const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+          if (status.state === 'denied') {
+            console.log("Location permission denied, skipping auto-prompt.");
+            setLocationPerm(false);
+            return;
+          }
+        }
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setLocationPerm(true);
+              const { latitude, longitude } = position.coords;
+              api.post('/discovery/location', { latitude, longitude }).catch(console.error);
+              fetchNearby(longitude, latitude);
+            },
+            (error) => {
+              console.error("Location error:", error);
+              if (error.code === error.PERMISSION_DENIED) {
+                setLocationPerm(false);
+              }
+            }
+          );
+        }
+      } catch (err) {
+        console.error("Permission check failed", err);
+      }
+    };
+
     api.get('/users/me')
       .then(res => {
         const followingIds = res.data.following?.map((f: any) => typeof f === 'object' ? f._id : f) || [];
         setMyFollowing(followingIds);
         
-        // Sync discovery status between backend and localStorage
         if (res.data.isDiscoveryEnabled) {
           localStorage.setItem('nearby_active', 'true');
-          if (!locationPerm && navigator.geolocation) {
-             setLocationPerm(true);
-             navigator.geolocation.getCurrentPosition(
-               (pos) => {
-                 const { latitude, longitude } = pos.coords;
-                 api.post('/discovery/location', { latitude, longitude }).catch(console.error);
-                 fetchNearby(longitude, latitude);
-               },
-               (err) => console.error("Sync location error:", err)
-             );
-          }
+          checkAndFetchNearby();
         } else if (localStorage.getItem('nearby_active') === 'true') {
-          // If localStorage is true but backend is false, sync to backend
           api.post('/discovery/toggle', { enabled: true }).catch(console.error);
         }
       })
       .catch(err => console.error(err));
-
-    // Get nearby users only if the user has persistent 'nearby_active' enabled
-    if (localStorage.getItem('nearby_active') === 'true' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocationPerm(true);
-          const { latitude, longitude } = position.coords;
-          
-          // Update own location on the server so others can find this user
-          api.post('/discovery/location', { latitude, longitude }).catch(console.error);
-          
-          fetchNearby(longitude, latitude);
-        },
-        (error) => {
-          console.error("Location error:", error);
-          // If permanent permission was expected but fails (e.g. revoked in browser), reset state
-          if (error.code === error.PERMISSION_DENIED) {
-            localStorage.removeItem('nearby_active');
-            setLocationPerm(false);
-          }
-        }
-      );
-    }
   }, []);
 
   const fetchNearby = async (lng: number, lat: number) => {
@@ -203,8 +200,6 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="feed-page animate-fade-in" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px' }}>
-      
-      {/* Full-width Search Bar at the top */}
       <div style={{ background: 'white', padding: '16px', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
         <div style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ position: 'absolute', top: '14px', left: '16px', color: '#94a3b8' }}>
@@ -232,8 +227,6 @@ const SearchPage: React.FC = () => {
       
       <main className="feed-container" style={{ paddingTop: '24px' }}>
         <div className="posts-container" style={{ maxWidth: '600px', width: '100%' }}>
-
-        {/* Results Area */}
         <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
           {query.trim() ? (
             <div>
@@ -265,11 +258,8 @@ const SearchPage: React.FC = () => {
                          navigator.geolocation.getCurrentPosition(
                            (position) => {
                              const { latitude, longitude } = position.coords;
-                             
-                             // Persist the user's choice to be discoverable
                              localStorage.setItem('nearby_active', 'true');
                              api.post('/discovery/toggle', { enabled: true }).catch(console.error);
-                             
                              setLocationPerm(true);
                              api.post('/discovery/location', { latitude, longitude }).catch(console.error);
                              fetchNearby(longitude, latitude);
@@ -277,11 +267,9 @@ const SearchPage: React.FC = () => {
                            (error) => {
                              console.error("Location error:", error);
                              setLoading(false);
-                             alert("Location access failed. You must grant permission, or you might need to use HTTPS on mobile devices.");
+                             alert("Location access failed.");
                            }
                          );
-                       } else {
-                         alert("Geolocation is not supported by your browser. Note: Location requires HTTPS (secure connection) on mobile devices.");
                        }
                      }}
                    >
@@ -291,19 +279,15 @@ const SearchPage: React.FC = () => {
                )}
 
                {loading && locationPerm && <p style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>Discovering...</p>}
-               
                {!loading && locationPerm && nearbyUsers.length === 0 && (
                  <p style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>No one nearby right now.</p>
                )}
-
                {!loading && nearbyUsers.map(renderUserCard)}
             </div>
           )}
         </div>
-
         </div>
       </main>
-
       <BottomNav />
     </div>
   );
