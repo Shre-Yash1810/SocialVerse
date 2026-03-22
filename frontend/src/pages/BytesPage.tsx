@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import BottomNav from '../components/BottomNav';
 import { Heart, MessageCircle, Share2, MoreVertical, Music } from 'lucide-react';
 import api from '../services/api';
@@ -6,6 +6,7 @@ import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { useNavigate } from 'react-router-dom';
+import { useByte } from '../context/ByteContext';
 import '../styles/Feed.css';
 
 interface Reel {
@@ -19,6 +20,127 @@ interface Reel {
   isLiked?: boolean;
   createdAt: string;
 }
+
+const BytePlayer: React.FC<{ 
+  reel: Reel; 
+  onLike: (id: string) => void; 
+  onComment: (id: string) => void;
+  onShare: (id: string) => void;
+  navigate: ReturnType<typeof useNavigate>;
+}> = ({ reel, onLike, onComment, onShare, navigate }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { setActiveByteId } = useByte();
+
+  // Custom Intersection Observer since useInView from framer-motion might behave differently 
+  // depending on version/setup. Using a native one for precision if needed, but let's try 
+  // a standard ref-based check if useInView isn't cutting it.
+  
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.8 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isInView && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(e => console.log("Auto-play blocked", e));
+      setActiveByteId(reel._id);
+    } else if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [isInView, reel._id, setActiveByteId]);
+
+  return (
+    <div key={reel._id} ref={containerRef} className="reel-item">
+      <div className="reel-video-wrapper">
+        {reel.content.startsWith('http') ? (
+          <video 
+            ref={videoRef}
+            src={reel.content} 
+            className="reel-video" 
+            loop 
+            muted 
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            background: 'linear-gradient(180deg, #1a1a1a 0%, #000 100%)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 10 }}>
+              <span style={{ color: '#333', fontSize: '2rem', fontWeight: 800 }}>SVERSE BYTES</span>
+            </div>
+          </div>
+        )}
+
+        <div className="reel-overlay">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer' }} onClick={() => navigate(`/profile/${reel.author.userid}`)}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#444', border: '1px solid white', overflow: 'hidden' }}>
+              <img src={reel.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.author.userid || reel.author.name)}&background=random`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <span style={{ fontWeight: 600 }}>{reel.author.userid || reel.author.name}</span>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              Follow
+            </button>
+          </div>
+          <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>{reel.caption}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', opacity: 0.9 }}>
+            <Music size={14} />
+            <span>Original Audio - {reel.author.userid || reel.author.name}</span>
+            <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>• {formatRelativeTime(reel.createdAt)}</span>
+          </div>
+        </div>
+
+        <div className="reel-actions-side">
+          <div className="reel-action-btn" onClick={() => onLike(reel._id)}>
+            <Heart size={30} className={reel.isLiked ? 'liked' : ''} fill={reel.isLiked ? '#ff3b30' : 'none'} color={reel.isLiked ? '#ff3b30' : 'white'} />
+            <span>{reel.likes?.length || 0}</span>
+          </div>
+          <div className="reel-action-btn" onClick={() => onComment(reel._id)}>
+            <MessageCircle size={30} color="white" />
+            <span>{reel.commentsCount || 0}</span>
+          </div>
+          <div className="reel-action-btn" onClick={() => onShare(reel._id)}>
+            <Share2 size={30} color="white" />
+          </div>
+          <div className="reel-action-btn">
+            <MoreVertical size={30} color="white" />
+          </div>
+          <div style={{ width: '32px', height: '32px', borderRadius: '6px', border: '2px solid white', background: '#333', marginTop: '10px', overflow: 'hidden' }}>
+            <img src={reel.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.author.userid || reel.author.name)}&background=random`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const BytesPage: React.FC = () => {
   const [reels, setReels] = useState<Reel[]>([]);
@@ -39,7 +161,6 @@ const BytesPage: React.FC = () => {
       }
 
       const res = await api.get('/posts/feed');
-      // Filter for videos/reels
       const reelsData = res.data
         .filter((post: any) => post.type === 'Video')
         .map((reel: any) => ({
@@ -73,6 +194,10 @@ const BytesPage: React.FC = () => {
     setActiveCommentPost(id);
   };
 
+  const handleShare = (id: string) => {
+    setActiveSharePost(id);
+  };
+
   if (loading) return <div className="loading-screen">Loading Bytes...</div>;
 
   return (
@@ -85,79 +210,14 @@ const BytesPage: React.FC = () => {
             </div>
         ) : (
           reels.map(reel => (
-            <div key={reel._id} className="reel-item">
-              <div className="reel-video-wrapper">
-                {/* Use content URL for video if it's a real URL, otherwise placeholder */}
-                {reel.content.startsWith('http') ? (
-                  <video 
-                    src={reel.content} 
-                    className="reel-video" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    background: 'linear-gradient(180deg, #1a1a1a 0%, #000 100%)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                  <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 10 }}>
-                    <span style={{ color: '#333', fontSize: '2rem', fontWeight: 800 }}>SVERSE BYTES</span>
-                  </div>
-                  </div>
-                )}
-
-                <div className="reel-overlay">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer' }} onClick={() => navigate(`/profile/${reel.author.userid}`)}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#444', border: '1px solid white', overflow: 'hidden' }}>
-                      <img src={reel.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.author.userid || reel.author.name)}&background=random`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <span style={{ fontWeight: 600 }}>{reel.author.userid || reel.author.name}</span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Follow logic here
-                      }}
-                      style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}
-                    >
-                      Follow
-                    </button>
-                  </div>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>{reel.caption}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', opacity: 0.9 }}>
-                    <Music size={14} />
-                    <span>Original Audio - {reel.author.userid || reel.author.name}</span>
-                    <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>• {formatRelativeTime(reel.createdAt)}</span>
-                  </div>
-                </div>
-
-                <div className="reel-actions-side">
-                  <div className="reel-action-btn" onClick={() => toggleLike(reel._id)}>
-                    <Heart size={30} className={reel.isLiked ? 'liked' : ''} fill={reel.isLiked ? '#ff3b30' : 'none'} color={reel.isLiked ? '#ff3b30' : 'white'} />
-                    <span>{reel.likes?.length || 0}</span>
-                  </div>
-                  <div className="reel-action-btn" onClick={() => handleComment(reel._id)}>
-                    <MessageCircle size={30} color="white" />
-                    <span>{reel.commentsCount || 0}</span>
-                  </div>
-                  <div className="reel-action-btn" onClick={() => setActiveSharePost(reel._id)}>
-                    <Share2 size={30} color="white" />
-                  </div>
-                  <div className="reel-action-btn">
-                    <MoreVertical size={30} color="white" />
-                  </div>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '6px', border: '2px solid white', background: '#333', marginTop: '10px', overflow: 'hidden' }}>
-                    <img src={reel.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.author.userid || reel.author.name)}&background=random`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BytePlayer 
+              key={reel._id} 
+              reel={reel} 
+              onLike={toggleLike} 
+              onComment={handleComment} 
+              onShare={handleShare}
+              navigate={navigate}
+            />
           ))
         )}
       </main>
