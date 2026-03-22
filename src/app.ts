@@ -24,13 +24,21 @@ const allowedOrigins = [
   'https://social-verse-chi.vercel.app',
   'http://localhost:5173',
   'https://localhost:5173',
+  'http://localhost:3000',
   'http://127.0.0.1:5173'
 ];
 
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     methods: ['GET', 'POST'],
+    credentials: true
   },
 });
 
@@ -40,12 +48,13 @@ initSocket(io);
 app.use(helmet({
   contentSecurityPolicy: false,
 }));
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false);
     }
   },
   credentials: true
