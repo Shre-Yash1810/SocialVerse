@@ -67,12 +67,12 @@ const ChatPage: React.FC = () => {
   const virtuosoRef = useRef<any>(null);
 
   useEffect(() => {
-     const socket = io('https://social-verse-backend-w9xr.onrender.com', {
-       path: '/socket.io/',
-       transports: ['polling', 'websocket'],
-       rejectUnauthorized: false
-     });
-     socketRef.current = socket;
+     // Use dynamic socket URL: relative '/' in dev (via proxy) or the Render URL in production
+    const socketUrl = import.meta.env.DEV ? 'http://localhost:5000' : 'https://social-verse-backend-w9xr.onrender.com';
+    socketRef.current = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      withCredentials: true
+    });
 
      return () => {
        if (socketRef.current) {
@@ -148,10 +148,8 @@ const ChatPage: React.FC = () => {
 
     try {
       const res = await api.post(`/chats/${chatId}/messages`, { text: newMessage });
-      // If the socket doesn't broadcast back to sender, keep this. 
-      // If it DOES, we should check for duplicates or just let the socket handle it.
-      // High confidence: socket.io is broadcasting back, causing double messages for sender.
-      // But let's check for existing ID to be safe if we keep it.
+      // The socket.io server broadcats to everyone including sender.
+      // To prevent duplication, only add if someone else or API hasn't added it yet.
       setMessages(prev => {
         if (prev.some(m => m._id === res.data._id)) return prev;
         return [...prev, res.data];
