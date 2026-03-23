@@ -23,6 +23,38 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
   const [showMobileComments, setShowMobileComments] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [lastWheelTime, setLastWheelTime] = useState<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY === null) return;
+    const touchEndY = e.changedTouches[0].clientY;
+    const distance = touchStartY - touchEndY;
+
+    if (distance > 50 && hasNext) {
+      onNext?.(); // Swipe up -> next post
+    } else if (distance < -50 && hasPrev) {
+      onPrev?.(); // Swipe down -> prev post
+    }
+    setTouchStartY(null);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    const now = Date.now();
+    if (now - lastWheelTime < 600) return; // Debounce to prevent rapid skipping
+
+    if (e.deltaY > 50 && hasNext) { // Scroll down
+      onNext?.();
+      setLastWheelTime(now);
+    } else if (e.deltaY < -50 && hasPrev) { // Scroll up
+      onPrev?.();
+      setLastWheelTime(now);
+    }
+  };
 
   useEffect(() => {
     // Reset local post state if the `post` prop changes (e.g. hitting Next/Prev)
@@ -98,7 +130,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
         </div>
 
         {/* Media Section */}
-        <div className="post-detail-media">
+        <div className="post-detail-media" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onWheel={handleWheel}>
           {localPost.type === 'Image' ? (
             <img src={localPost.content} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           ) : (
@@ -143,14 +175,15 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
             </p>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+          <div className="pd-comments-section">
             <div className="desktop-only">
               {comments.map(comment => (
                 <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                   <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                   <div>
-                    <p style={{ fontSize: '0.9rem' }}><strong>{comment.author.userid}</strong> {comment.content}</p>
-                    <span style={{ fontSize: '0.75rem', color: '#8e8e8e' }}>{formatRelativeTime(comment.createdAt)}</span>
+                    <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                    <p style={{ fontSize: '0.9rem' }}>{comment.text}</p>
+                    <span style={{ fontSize: '0.75rem', color: '#8e8e8e', marginTop: '4px', display: 'block' }}>{formatRelativeTime(comment.createdAt)}</span>
                   </div>
                 </div>
               ))}
@@ -184,8 +217,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                       <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                         <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                         <div>
-                          <p style={{ fontSize: '0.9rem' }}><strong>{comment.author.userid}</strong> <span style={{ color: '#262626' }}>{comment.content}</span></p>
-                          <span style={{ fontSize: '0.75rem', color: '#8e8e8e' }}>{formatRelativeTime(comment.createdAt)}</span>
+                          <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                          <p style={{ fontSize: '0.9rem', color: '#262626' }}>{comment.text}</p>
+                          <span style={{ fontSize: '0.75rem', color: '#8e8e8e', marginTop: '4px', display: 'block' }}>{formatRelativeTime(comment.createdAt)}</span>
                         </div>
                       </div>
                     ))

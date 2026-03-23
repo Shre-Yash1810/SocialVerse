@@ -9,6 +9,7 @@ import MessageBubble from '../components/MessageBubble';
 import GroupInfoModal from '../components/GroupInfoModal';
 import PostDetailModal from '../components/PostDetailModal';
 import BlogDetailModal from '../components/BlogDetailModal';
+import { formatRelativeTime } from '../utils/timeUtils';
 
 interface SharedPost {
   _id: string;
@@ -67,25 +68,22 @@ const ChatPage: React.FC = () => {
   const virtuosoRef = useRef<any>(null);
 
   useEffect(() => {
-     // Use dynamic socket URL: relative '/' in dev (via proxy) or the Render URL in production
-    const socketUrl = import.meta.env.DEV ? 'http://localhost:5000' : 'https://social-verse-backend-w9xr.onrender.com';
-    socketRef.current = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-      withCredentials: true
-    });
-
-     return () => {
-       if (socketRef.current) {
-         socketRef.current.disconnect();
-       }
-     };
-  }, []);
-
-  useEffect(() => {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
     let isMounted = true;
+    const isDev = import.meta.env.DEV;
+    const socketUrl = isDev ? '' : 'https://social-verse-backend-w9xr.onrender.com';
+    console.log('[Socket Debug] isDev:', isDev, 'socketUrl:', socketUrl);
+    
+    // Initialize socket
+    const socket = io(socketUrl, {
+      withCredentials: true,
+      transports: isDev ? ['polling'] : ['websocket', 'polling']
+    });
+    console.log('[Socket Debug] Socket instance created:', socket);
+    socketRef.current = socket;
+
     const loadChat = async () => {
       try {
         const [chatRes, msgRes, userRes] = await Promise.all([
@@ -98,37 +96,30 @@ const ChatPage: React.FC = () => {
           setMessages(msgRes.data);
           setCurrentUser(userRes.data);
           setLoading(false);
-
-          if (socketRef.current) {
-            socketRef.current.emit('register', userRes.data._id);
-          }
+          socket.emit('register', userRes.data._id);
         }
       } catch (error) {
         console.error('Error loading space chat:', error);
         if (isMounted) setLoading(false);
       }
     };
+
     loadChat();
 
-    if (socketRef.current) {
-      socketRef.current.on('new_message', (message: Message) => {
-        setMessages(prev => {
-          if (prev.some(m => m._id === message._id)) return prev;
-          return [...prev, message];
-        });
+    socket.on('new_message', (message: Message) => {
+      setMessages(prev => {
+        if (prev.some(m => m._id === message._id)) return prev;
+        return [...prev, message];
       });
+    });
 
-      socketRef.current.on('message_deleted', ({ messageId }: { messageId: string }) => {
-        setMessages(prev => prev.filter(m => m._id !== messageId));
-      });
-    }
+    socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+    });
 
-    return () => { 
-      isMounted = false; 
-      if (socketRef.current) {
-        socketRef.current.off('new_message');
-        socketRef.current.off('message_deleted');
-      }
+    return () => {
+      isMounted = false;
+      socket.disconnect();
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
@@ -203,7 +194,7 @@ const ChatPage: React.FC = () => {
   const chatAvatar = (chat?.isGroup ? '' : otherParticipant?.profilePic) || '';
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+    <div className="chat-page-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url("https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.6)', zIndex: 0 }}></div>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(circle at center, transparent, rgba(15, 23, 42, 0.4))', zIndex: 1 }}></div>
 
@@ -215,7 +206,15 @@ const ChatPage: React.FC = () => {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff' }}>{chatName}</h3>
-            <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, color: '#e2e8f0', fontWeight: 500 }}>{chat?.isGroup ? `${chat.participants.length} members` : 'Active now'}</p>
+            <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, color: '#e2e8f0', fontWeight: 500 }}>
+              {chat?.isGroup ? `${chat.participants.length} members` : (
+                otherParticipant?.lastSeen 
+                  ? (new Date().getTime() - new Date(otherParticipant.lastSeen).getTime() < 5 * 60 * 1000 
+                      ? 'Active now' 
+                      : `Active ${formatRelativeTime(otherParticipant.lastSeen)}`)
+                  : 'Offline'
+              )}
+            </p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -267,7 +266,7 @@ const ChatPage: React.FC = () => {
             <Image size={22} style={{ opacity: 0.7, cursor: 'pointer' }} />
             <Smile size={22} onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="desktop-only" style={{ opacity: 0.7, cursor: 'pointer' }} />
           </div>
-          <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onFocus={() => setShowEmojiPicker(false)} placeholder="Explore the universe..." style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '10px 4px', outline: 'none', fontSize: '0.95rem' }} />
+          <input type="text" id="message-input" name="message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onFocus={() => setShowEmojiPicker(false)} placeholder="Explore the universe..." style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '10px 4px', outline: 'none', fontSize: '0.95rem' }} />
           <button type="submit" disabled={!newMessage.trim()} style={{ background: 'transparent', border: 'none', color: newMessage.trim() ? '#818cf8' : 'rgba(255,255,255,0.3)', fontWeight: 'bold', cursor: 'pointer', marginLeft: '8px' }}><Send size={24} /></button>
         </form>
       </footer>
@@ -296,7 +295,10 @@ const ChatPage: React.FC = () => {
           border-radius: 10px;
         }
         @media (max-width: 768px) { .desktop-only { display: none !important; } }
-        @media (min-width: 769px) { .mobile-only { display: none !important; } }
+        @media (min-width: 769px) { 
+          .mobile-only { display: none !important; } 
+          .chat-page-container { padding-right: 80px; }
+        }
       `}</style>
     </div>
   );

@@ -14,6 +14,15 @@ router.post('/:chatId/messages', protect, sendMessage);
 router.post('/:chatId/participants', protect, addParticipants);
 router.delete('/:chatId/participants/:userId', protect, removeParticipant);
 router.put('/:chatId', protect, updateChat);
-router.delete('/:chatId/leave', protect, leaveChat);
+router.get('/test_db', async (req, res) => {
+  try {
+    const Chat = require('../models/Chat').default;
+    const count = await Chat.countDocuments();
+    res.json({ message: 'DB works', count });
+  } catch(e) {
+    res.status(500).json({ error: String(e), stack: (e as any).stack });
+  }
+});
+router.get('/:chatId/leave', protect, leaveChat);
 
 export default router;

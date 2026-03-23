@@ -6,6 +6,8 @@ import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 
 import CreateGroupModal from '../components/CreateGroupModal';
+import CreateMomentModal from '../components/CreateMomentModal';
+import MomentViewerModal from '../components/MomentViewerModal';
 
 const VerseChat: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ const VerseChat: React.FC = () => {
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [isCreateMomentOpen, setIsCreateMomentOpen] = useState(false);
+  const [activeMomentIndex, setActiveMomentIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,8 +47,19 @@ const VerseChat: React.FC = () => {
   });
 
   const handleMomentClick = (userId: string) => {
-    console.log('View moment for:', userId);
-    // Future: Open story viewer modal
+    if (userId === 'me') {
+      setIsCreateMomentOpen(true);
+    } else {
+      const idx = moments.findIndex((m: any) => m.user._id === userId);
+      if (idx !== -1) setActiveMomentIndex(idx);
+    }
+  };
+
+  const fetchMoments = async () => {
+    try {
+      const res = await api.get('/moments');
+      setMoments(res.data);
+    } catch (e) { console.error(e); }
   };
 
   return (
@@ -212,6 +227,28 @@ const VerseChat: React.FC = () => {
             setIsCreateGroupOpen(false);
             navigate(`/chat/${chatId}`);
           }} 
+        />
+      )}
+
+      {isCreateMomentOpen && (
+        <CreateMomentModal
+          onClose={() => setIsCreateMomentOpen(false)}
+          onMomentCreated={fetchMoments}
+        />
+      )}
+
+      {activeMomentIndex !== null && moments[activeMomentIndex] && (
+        <MomentViewerModal
+          momentGroup={moments[activeMomentIndex]}
+          onClose={() => setActiveMomentIndex(null)}
+          onNextGroup={() => {
+            if (activeMomentIndex < moments.length - 1) setActiveMomentIndex(activeMomentIndex + 1);
+            else setActiveMomentIndex(null);
+          }}
+          onPrevGroup={() => {
+            if (activeMomentIndex > 0) setActiveMomentIndex(activeMomentIndex - 1);
+            else setActiveMomentIndex(null);
+          }}
         />
       )}
 

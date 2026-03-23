@@ -11,7 +11,7 @@ const SearchPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [locationPerm, setLocationPerm] = useState(localStorage.getItem('nearby_active') === 'true');
+  const [locationPerm, setLocationPerm] = useState(localStorage.getItem('nearby_location_granted') === 'true');
   
   const [myFollowing, setMyFollowing] = useState<string[]>([]);
   const [wavedAt, setWavedAt] = useState<string[]>([]);
@@ -19,7 +19,7 @@ const SearchPage: React.FC = () => {
 
   useEffect(() => {
     const checkAndFetchNearby = async () => {
-      if (localStorage.getItem('nearby_active') !== 'true') return;
+      if (localStorage.getItem('nearby_location_granted') !== 'true') return;
 
       try {
         if (navigator.permissions) {
@@ -57,11 +57,9 @@ const SearchPage: React.FC = () => {
         const followingIds = res.data.following?.map((f: any) => typeof f === 'object' ? f._id : f) || [];
         setMyFollowing(followingIds);
         
-        if (res.data.isDiscoveryEnabled) {
-          localStorage.setItem('nearby_active', 'true');
-          checkAndFetchNearby();
-        } else if (localStorage.getItem('nearby_active') === 'true') {
-          api.post('/discovery/toggle', { enabled: true }).catch(console.error);
+        if (res.data.isDiscoveryEnabled !== undefined) {
+           // We only fetch if location was previously granted
+           checkAndFetchNearby();
         }
       })
       .catch(err => console.error(err));
@@ -258,8 +256,7 @@ const SearchPage: React.FC = () => {
                          navigator.geolocation.getCurrentPosition(
                            (position) => {
                              const { latitude, longitude } = position.coords;
-                             localStorage.setItem('nearby_active', 'true');
-                             api.post('/discovery/toggle', { enabled: true }).catch(console.error);
+                             localStorage.setItem('nearby_location_granted', 'true');
                              setLocationPerm(true);
                              api.post('/discovery/location', { latitude, longitude }).catch(console.error);
                              fetchNearby(longitude, latitude);

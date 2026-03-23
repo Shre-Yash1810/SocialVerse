@@ -38,7 +38,7 @@ export const getChats = async (req: Request, res: Response) => {
     const userId = (req as any).user._id;
     // Filter chats where the current user is a participant
     const chats = await Chat.find({ participants: userId })
-      .populate('participants', 'userid name profilePic')
+      .populate('participants', 'userid name profilePic lastSeen')
       .populate({
         path: 'lastMessage',
         populate: { path: 'sender', select: 'userid name' }
@@ -66,7 +66,7 @@ export const getChat = async (req: Request, res: Response) => {
   }
 
   try {
-    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic');
+    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic lastSeen');
     if (!chat) return res.status(404).json({ message: 'Chat not found' });
     res.json(chat);
   } catch (error) {

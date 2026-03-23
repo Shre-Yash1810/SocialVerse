@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, BookOpen, MessageCircle, Bell, PlusSquare, User, Settings } from 'lucide-react';
 import BytesIcon from './BytesIcon';
 import CreatePostModal from './CreatePostModal';
 
 const RightSidebar: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const location = useLocation();
+
+  if (location.pathname === '/auth') {
+    return null;
+  }
 
   return (
     <>

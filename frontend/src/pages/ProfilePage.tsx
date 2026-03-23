@@ -8,6 +8,7 @@ import PostDetailModal from '../components/PostDetailModal';
 import BlogDetailModal from '../components/BlogDetailModal';
 import FollowListModal from '../components/FollowListModal';
 import ProfileOptionsModal from '../components/ProfileOptionsModal';
+import MomentViewerModal from '../components/MomentViewerModal';
 import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 import '../styles/Profile.css';
@@ -28,6 +29,8 @@ const ProfilePage: React.FC = () => {
   const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
   const [showXpBar, setShowXpBar] = useState(false);
+  const [highlights, setHighlights] = useState<any[]>([]);
+  const [activeHighlight, setActiveHighlight] = useState(false);
 
   const currentUserId = localStorage.getItem('userid');
   const targetId = urlHandle || currentUserId;
@@ -72,8 +75,19 @@ const ProfilePage: React.FC = () => {
       }
     };
 
+    const fetchHighlights = async () => {
+      if (!targetId) return;
+      try {
+        const res = await api.get(`/moments/user/${targetId}/highlights`);
+        setHighlights(res.data);
+      } catch (err) {
+        console.error('Failed to fetch highlights', err);
+      }
+    };
+
     fetchProfile();
     fetchUserPosts();
+    fetchHighlights();
   }, [targetId, navigate, currentUserId]);
 
   const handleFollow = async () => {
@@ -118,6 +132,8 @@ const ProfilePage: React.FC = () => {
     if (activeTab === 'blogs') return post.type === 'Blog';
     return false;
   });
+
+  const isPrivateAndNotFollowing = user?.isPrivate && !isOwnProfile && !isFollowing;
 
   if (loading) return <div className="loading-screen">Loading Profile...</div>;
 
@@ -251,6 +267,26 @@ const ProfilePage: React.FC = () => {
           <div className="bio-container">
             <p className="bio-text">{user.bio}</p>
           </div>
+
+          {highlights.length > 0 && (
+            <div className="highlights-container animate-fade-in" style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px', overflowX: 'auto', paddingBottom: '10px' }}>
+              <div 
+                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                onClick={() => setActiveHighlight(true)}
+              >
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', padding: '2px', background: 'linear-gradient(45deg, #e2e8f0, #cbd5e1)' }}>
+                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2px solid var(--bg-main)', overflow: 'hidden' }}>
+                    {highlights[0].type === 'image' ? (
+                      <img src={highlights[0].media} alt="Highlights" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <video src={highlights[0].media} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                    )}
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Highlights</span>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Content Section (Instagram style) */}
@@ -280,41 +316,53 @@ const ProfilePage: React.FC = () => {
           </div>
 
           <div className="posts-grid">
-            {filteredPosts.map((post) => (
-                <div 
-                  key={post._id} 
-                  className="post-skeleton"
-                  style={{ 
-                    background: post.type === 'Blog' 
-                      ? 'url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80")' 
-                      : 'var(--bg-secondary)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                  onClick={() => post.type === 'Blog' ? setActiveDetailBlog(post) : setActiveDetailPost(post)}
-                >
-                  {post.type === 'Image' && <img src={post.content} alt="" />}
-                  {post.type === 'Video' && <video src={post.content} muted />}
-                  {post.type === 'Blog' && (
-                    <div style={{ padding: '20px', color: 'white', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                      <h4 style={{ fontSize: '1rem', marginBottom: '8px', lineHeight: 1.4 }}>{post.caption}</h4>
-                      <p style={{ fontSize: '0.8rem', opacity: 0.8, overflow: 'hidden' }}>{post.content.substring(0, 80)}...</p>
-                    </div>
-                  )}
-                  <div className="post-overlay">
-                    <div className="post-overlay-stat">
-                      <Heart fill="white" size={24} /> {post.likes?.length || 0}
-                    </div>
-                    <div className="post-overlay-stat">
-                      <MessageCircle fill="white" size={24} /> {post.commentsCount || 0}
-                    </div>
-                  </div>
+            {isPrivateAndNotFollowing ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 40px', color: 'var(--text-main)', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ width: '64px', height: '64px', margin: '0 auto 16px', borderRadius: '50%', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </div>
-              ))}
-            {filteredPosts.length === 0 && (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                No {activeTab} yet.
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>This account is private</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Follow to see their photos and videos.</p>
               </div>
+            ) : (
+              <>
+                {filteredPosts.map((post) => (
+                    <div 
+                      key={post._id} 
+                      className="post-skeleton"
+                      style={{ 
+                        background: post.type === 'Blog' 
+                          ? 'url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2000&q=80")' 
+                          : 'var(--bg-secondary)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                      onClick={() => post.type === 'Blog' ? setActiveDetailBlog(post) : setActiveDetailPost(post)}
+                    >
+                      {post.type === 'Image' && <img src={post.content} alt="" />}
+                      {post.type === 'Video' && <video src={post.content} muted />}
+                      {post.type === 'Blog' && (
+                        <div style={{ padding: '20px', color: 'white', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                          <h4 style={{ fontSize: '1rem', marginBottom: '8px', lineHeight: 1.4 }}>{post.caption}</h4>
+                          <p style={{ fontSize: '0.8rem', opacity: 0.8, overflow: 'hidden' }}>{post.content.substring(0, 80)}...</p>
+                        </div>
+                      )}
+                      <div className="post-overlay">
+                        <div className="post-overlay-stat">
+                          <Heart fill="white" size={24} /> {post.likes?.length || 0}
+                        </div>
+                        <div className="post-overlay-stat">
+                          <MessageCircle fill="white" size={24} /> {post.commentsCount || 0}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {filteredPosts.length === 0 && (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    No {activeTab} yet.
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -382,6 +430,12 @@ const ProfilePage: React.FC = () => {
           user={user} 
           onClose={() => setIsProfileOptionsOpen(false)} 
           onBlockSuccess={() => window.location.href = '/feed'}
+        />
+      )}
+      {activeHighlight && highlights.length > 0 && (
+        <MomentViewerModal 
+          momentGroup={{ user, moments: highlights }}
+          onClose={() => setActiveHighlight(false)}
         />
       )}
     </>

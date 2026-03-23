@@ -18,7 +18,15 @@ export default defineConfig({
         target: 'http://127.0.0.1:5000',
         ws: true,
         changeOrigin: true,
-        secure: false
+        secure: false,
+        headers: {
+          Connection: 'upgrade'
+        },
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+        },
       }
     }
   }

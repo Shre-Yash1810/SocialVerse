@@ -5,7 +5,8 @@ export interface IMoment extends Document {
   media: string;
   type: 'image' | 'video';
   viewers: mongoose.Types.ObjectId[];
-  expiresAt: Date;
+  isHighlight: boolean;
+  expiresAt?: Date | null;
   createdAt: Date;
 }
 
@@ -15,10 +16,11 @@ const MomentSchema = new Schema<IMoment>(
     media: { type: String, required: true },
     type: { type: String, enum: ['image', 'video'], default: 'image' },
     viewers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    isHighlight: { type: Boolean, default: false },
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-      index: { expires: 0 } // TTL index: documents expire at the time in expiresAt
+      index: { expires: 0 }, // TTL index
     }
   },
   { timestamps: true }

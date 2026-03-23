@@ -31,7 +31,8 @@ const allowedOrigins = [
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // In development, be more permissive with origins
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
         callback(null, true);
       } else {
         callback(null, false);
@@ -40,6 +41,7 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST'],
     credentials: true
   },
+  allowEIO3: true // Support older clients if any
 });
 
 initSocket(io);
@@ -51,7 +53,7 @@ app.use(helmet({
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
       callback(null, false);
@@ -83,14 +85,20 @@ app.get('/', (req, res) => {
 // Socket.io connection
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+  console.log('Transport used:', socket.conn.transport.name);
+
+  socket.conn.on('upgrade', (transport) => {
+    console.log('Transport upgraded to:', transport.name);
+  });
 
   socket.on('register', (userId: string) => {
+    console.log(`User ${userId} registering socket ${socket.id}`);
     registerUserSocket(userId, socket.id);
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     removeUserSocket(socket.id);
-    console.log('User disconnected:', socket.id);
+    console.log('User disconnected:', socket.id, 'Reason:', reason);
   });
 });
 

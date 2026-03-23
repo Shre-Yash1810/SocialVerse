@@ -450,9 +450,21 @@
   width: 350px;
   min-width: 350px;
   background: white;
+  color: #0f172a; /* Ensure text is visible even if parent is dark mode */
   display: flex;
   flex-direction: column;
   border-left: 1px solid #dbdbdb;
+}
+
+.pd-comments-section {
+  padding: 16px;
+}
+
+@media (min-width: 769px) {
+  .pd-comments-section {
+    flex: 1;
+    overflow-y: auto;
+  }
 }
 
 @media (max-width: 768px) {

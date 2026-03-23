@@ -110,7 +110,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                           </button>
                         )}
                       </div>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{comment.text}</p>
+                      <p style={{ fontSize: '0.9rem', color: '#334155', marginTop: '2px' }}>{comment.text}</p>
                       <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px' }}>{formatRelativeTime(comment.createdAt)}</p>
                     </div>
                   </div>
