@@ -77,7 +77,7 @@ const VerseChat: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px', paddingTop: window.innerWidth < 768 ? '80px' : '20px' }}>
       
       {/* Header & Search */}
       <div className="sticky-header" style={{ padding: '20px 16px 10px', background: 'white' }}>

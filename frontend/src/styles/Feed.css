@@ -13,6 +13,16 @@
   }
 }
 
+.feed-page {
+  padding-top: 80px; /* Accounts for 60px mobile top-nav + gap */
+}
+
+@media (min-width: 768px) {
+  .feed-page {
+    padding-top: 20px; /* Top nav hidden on desktop */
+  }
+}
+
 .post-card {
   background: var(--bg-card);
   border-radius: var(--radius);
