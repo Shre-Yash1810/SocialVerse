@@ -9,6 +9,7 @@
     margin-left: auto;
     margin-right: max(80px, auto); /* Space for desktop right sidebar */
     max-width: 600px; /* Keep container nice and centered without shifting wildly */
+    padding-top: 20px; /* Header is hidden on desktop */
   }
 }
 

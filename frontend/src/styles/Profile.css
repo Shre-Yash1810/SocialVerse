@@ -15,6 +15,7 @@
   .profile-container {
     padding-left: 5%;
     padding-right: calc(80px + 5%);
+    padding-top: 40px; /* Top nav hidden on desktop */
   }
 }
 

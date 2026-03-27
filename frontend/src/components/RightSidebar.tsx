@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, BookOpen, MessageCircle, Bell, PlusSquare, User, Settings } from 'lucide-react';
+import logo from '../assets/logo/logo-light.png';
 import BytesIcon from './BytesIcon';
 import CreatePostModal from './CreatePostModal';
 
@@ -16,6 +17,9 @@ const RightSidebar: React.FC = () => {
   return (
     <>
       <nav className="right-sidebar desktop-only">
+        <div className="sidebar-logo-container" onClick={() => navigate('/feed')}>
+          <img src={logo} alt="SocialVerse" className="sidebar-logo" />
+        </div>
         <div className="sidebar-top">
           <NavLink to="/feed" className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
             <Home size={26} />

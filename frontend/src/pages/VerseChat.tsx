@@ -80,7 +80,7 @@ const VerseChat: React.FC = () => {
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px' }}>
       
       {/* Header & Search */}
-      <div style={{ padding: '20px 16px 10px', position: 'sticky', top: '85px', background: 'white', zIndex: 10 }}>
+      <div className="sticky-header" style={{ padding: '20px 16px 10px', background: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>VerseChat</h1>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

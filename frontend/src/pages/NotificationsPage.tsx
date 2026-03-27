@@ -77,7 +77,7 @@ const NotificationsPage: React.FC = () => {
     <div className="feed-page animate-fade-in" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px' }}>
 
       {/* Header */}
-      <div style={{ background: 'white', padding: '16px 20px', position: 'sticky', top: '85px', zIndex: 50, borderBottom: '1px solid #f1f5f9' }}>
+      <div className="sticky-header" style={{ background: 'white', padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>Notifications</h2>
         </div>
