@@ -37,7 +37,15 @@ const SearchPage: React.FC = () => {
             (position) => {
               setLocationPerm(true);
               const { latitude, longitude } = position.coords;
-              api.post('/discovery/location', { latitude, longitude }).catch(console.error);
+              
+              // Generate or retrieve device ID
+              let deviceId = localStorage.getItem('sverse_device_id');
+              if (!deviceId) {
+                deviceId = 'dev_' + Math.random().toString(36).substring(2, 11);
+                localStorage.setItem('sverse_device_id', deviceId);
+              }
+
+              api.post('/discovery/location', { latitude, longitude, deviceId }).catch(console.error);
               fetchNearby(longitude, latitude);
             },
             (error) => {
@@ -253,7 +261,15 @@ const SearchPage: React.FC = () => {
                              const { latitude, longitude } = position.coords;
                              localStorage.setItem('nearby_location_granted', 'true');
                              setLocationPerm(true);
-                             api.post('/discovery/location', { latitude, longitude }).catch(console.error);
+
+                             // Generate or retrieve device ID
+                             let deviceId = localStorage.getItem('sverse_device_id');
+                             if (!deviceId) {
+                               deviceId = 'dev_' + Math.random().toString(36).substring(2, 11);
+                               localStorage.setItem('sverse_device_id', deviceId);
+                             }
+
+                             api.post('/discovery/location', { latitude, longitude, deviceId }).catch(console.error);
                              fetchNearby(longitude, latitude);
                            },
                            (error) => {

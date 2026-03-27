@@ -5,7 +5,7 @@ export interface IMoment extends Document {
   media: string;
   type: 'image' | 'video';
   viewers: mongoose.Types.ObjectId[];
-  isHighlight: boolean;
+  isMemory: boolean;
   expiresAt?: Date | null;
   createdAt: Date;
   overlayData?: string; // JSON string containing text, positions, etc.
@@ -18,7 +18,7 @@ const MomentSchema = new Schema<IMoment>(
     media: { type: String, required: true },
     type: { type: String, enum: ['image', 'video'], default: 'image' },
     viewers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    isHighlight: { type: Boolean, default: false },
+    isMemory: { type: Boolean, default: false },
     overlayData: { type: String },
     mentions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     expiresAt: {

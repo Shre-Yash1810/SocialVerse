@@ -147,11 +147,11 @@ export const deleteMoment = async (req: Request, res: Response) => {
   }
 };
 
-export const highlightMoment = async (req: Request, res: Response) => {
+export const memoryMoment = async (req: Request, res: Response) => {
   const { momentId } = req.params;
   const userId = (req as any).user._id;
 
-  if (isMockMode()) return res.json({ message: 'Moment highlighted (Mock Mode)' });
+  if (isMockMode()) return res.json({ message: 'Moment saved to Memories (Mock Mode)' });
 
   try {
     const moment = await Moment.findById(momentId);
@@ -162,7 +162,7 @@ export const highlightMoment = async (req: Request, res: Response) => {
     }
 
     const updated = await Moment.findByIdAndUpdate(momentId, {
-      isHighlight: true,
+      isMemory: true,
       expiresAt: null // Never expire
     }, { new: true });
 
@@ -172,7 +172,7 @@ export const highlightMoment = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserHighlights = async (req: Request, res: Response) => {
+export const getUserMemories = async (req: Request, res: Response) => {
   const { handle } = req.params;
 
   if (isMockMode()) return res.json([]);
@@ -181,12 +181,12 @@ export const getUserHighlights = async (req: Request, res: Response) => {
     const user = await User.findOne({ userid: String(handle).toLowerCase() });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const highlights = await Moment.find({ user: user._id, isHighlight: true })
+    const memories = await Moment.find({ user: user._id, isMemory: true })
       .populate('user', 'userid name profilePic')
       .populate('viewers', 'userid name profilePic')
-      .sort({ createdAt: 1 }); // Chronological order for highlights
+      .sort({ createdAt: 1 }); // Chronological order for memories
 
-    res.json(highlights);
+    res.json(memories);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

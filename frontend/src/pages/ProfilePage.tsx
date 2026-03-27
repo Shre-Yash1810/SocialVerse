@@ -29,8 +29,8 @@ const ProfilePage: React.FC = () => {
   const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
   const [showXpBar, setShowXpBar] = useState(false);
-  const [highlights, setHighlights] = useState<any[]>([]);
-  const [activeHighlight, setActiveHighlight] = useState(false);
+  const [memories, setMemories] = useState<any[]>([]);
+  const [activeMemory, setActiveMemory] = useState(false);
 
   const { user: currentUser } = useUser();
   const currentUserId = currentUser?.userid;
@@ -73,19 +73,19 @@ const ProfilePage: React.FC = () => {
       }
     };
 
-    const fetchHighlights = async () => {
+    const fetchMemories = async () => {
       if (!targetId) return;
       try {
-        const res = await api.get(`/moments/user/${targetId}/highlights`);
-        setHighlights(res.data);
+        const res = await api.get(`/moments/user/${targetId}/memories`);
+        setMemories(res.data);
       } catch (err) {
-        console.error('Failed to fetch highlights', err);
+        console.error('Failed to fetch memories', err);
       }
     };
 
     fetchProfile();
     fetchUserPosts();
-    fetchHighlights();
+    fetchMemories();
   }, [targetId, navigate, currentUserId]);
 
   const handleFollow = async () => {
@@ -260,22 +260,22 @@ const ProfilePage: React.FC = () => {
             <p className="bio-text">{user.bio}</p>
           </div>
 
-          {highlights.length > 0 && (
+          {memories.length > 0 && (
             <div className="highlights-container animate-fade-in" style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px', overflowX: 'auto', paddingBottom: '10px' }}>
               <div 
                 style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
-                onClick={() => setActiveHighlight(true)}
+                onClick={() => setActiveMemory(true)}
               >
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', padding: '2px', background: 'linear-gradient(45deg, #e2e8f0, #cbd5e1)' }}>
                   <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2px solid var(--bg-main)', overflow: 'hidden' }}>
-                    {highlights[0].type === 'image' ? (
-                      <img src={highlights[0].media} alt="Highlights" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {memories[0].type === 'image' ? (
+                      <img src={memories[0].media} alt="Memories" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <video src={highlights[0].media} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                      <video src={memories[0].media} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
                     )}
                   </div>
                 </div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Highlights</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Memories</span>
               </div>
             </div>
           )}
@@ -423,10 +423,10 @@ const ProfilePage: React.FC = () => {
           onBlockSuccess={() => navigate('/feed')}
         />
       )}
-      {activeHighlight && highlights.length > 0 && (
+      {activeMemory && memories.length > 0 && (
         <MomentViewerModal 
-          momentGroup={{ user, moments: highlights }}
-          onClose={() => setActiveHighlight(false)}
+          momentGroup={{ user, moments: memories }}
+          onClose={() => setActiveMemory(false)}
         />
       )}
     </>

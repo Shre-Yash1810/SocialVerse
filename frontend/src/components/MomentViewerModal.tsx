@@ -100,10 +100,10 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
     } catch (e) { console.error(e); }
   };
 
-  const handleHighlight = async () => {
+  const handleMemory = async () => {
     try {
-      await api.post(`/moments/${momentGroup.moments[currentIndex]._id}/highlight`);
-      alert('Moment saved to highlights!');
+      await api.post(`/moments/${momentGroup.moments[currentIndex]._id}/memory`);
+      alert('Moment saved to Memories!');
     } catch (e) { console.error(e); }
   };
 
@@ -219,7 +219,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
               <Eye size={18} /> {currentMoment.viewers?.length || 0}
             </button>
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={handleHighlight} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button onClick={handleMemory} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <Star size={20} />
               </button>
               <button onClick={handleDelete} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>

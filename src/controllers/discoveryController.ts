@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User';
+import UserDevice from '../models/UserDevice';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
 
@@ -21,36 +22,63 @@ export const getNearbyUsers = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await User.findById((req as any).user._id);
-    const blockedList = user?.blockedUsers || [];
-    const followingList = user?.following || [];
+    const currentUser = await User.findById((req as any).user._id);
+    if (!currentUser) return res.status(404).json({ message: 'User not found' });
+    
+    const blockedList = currentUser.blockedUsers || [];
+    const followingList = currentUser.following || [];
 
-    const searchableNearby = {
-      isDiscoveryEnabled: true,
+    // Find nearby devices
+    const nearbyDevices = await UserDevice.find({
       location: {
         $near: {
           $geometry: {
             type: 'Point',
             coordinates: [parseFloat(longitude as string), parseFloat(latitude as string)],
           },
-          $maxDistance: 500,
+          $maxDistance: 500, // 500 meters
         },
       },
-      _id: { $ne: (req as any).user._id, $nin: [...blockedList, ...followingList] },
-    };
+    }).populate({
+      path: 'user',
+      select: 'userid name profilePic xp level isDiscoveryEnabled blockedUsers following'
+    });
 
-    const users = await User.find(searchableNearby).select('userid name profilePic xp level location');
+    // Filter and deduplicate users
+    const uniqueUsersMap = new Map();
+    
+    nearbyDevices.forEach((device: any) => {
+      const u = device.user;
+      if (!u || !u.isDiscoveryEnabled) return;
+      
+      const uId = u._id.toString();
+      const currentUserId = (req as any).user._id.toString();
+      
+      // Basic filtering: Not self, not blocked, not already following (as per existing logic)
+      if (uId === currentUserId) return;
+      if (blockedList.some(id => id.toString() === uId)) return;
+      if (followingList.some(id => id.toString() === uId)) return;
+      
+      // If user A has multiple devices, only show the closest one (Map will keep the first/closest)
+      if (!uniqueUsersMap.has(uId)) {
+        uniqueUsersMap.set(uId, {
+          _id: u._id,
+          userid: u.userid,
+          name: u.name,
+          profilePic: u.profilePic,
+          xp: u.xp,
+          level: u.level,
+          location: device.location // Use the specific device location
+        });
+      }
+    });
+
+    const users = Array.from(uniqueUsersMap.values());
 
     // DEBUG LOGS
-    const allDiscoverable = await User.find({ isDiscoveryEnabled: true }).select('userid location');
-    console.log(`--- DEBUG: Discovery Search by ${user?.userid} ---`);
+    console.log(`--- DEBUG: Discovery Search by ${currentUser.userid} ---`);
     console.log(`Search Coords: [${longitude}, ${latitude}]`);
-    console.log(`Found ${users.length} users within 100m`);
-    console.log(`Other Discoverable Users:`, allDiscoverable.map(u => ({
-       userid: u.userid,
-       coords: u.location?.coordinates,
-       isSame: u.userid === user?.userid
-    })));
+    console.log(`Found ${users.length} unique users nearby`);
     console.log(`----------------------------------------------`);
 
     res.json(users);
@@ -80,7 +108,8 @@ export const toggleDiscovery = async (req: Request, res: Response) => {
 };
 
 export const updateLocation = async (req: Request, res: Response) => {
-  const { longitude, latitude } = req.body;
+  const { longitude, latitude, deviceId } = req.body;
+  const userId = (req as any).user._id;
 
   if (isMockMode()) {
     return res.json({
@@ -90,8 +119,9 @@ export const updateLocation = async (req: Request, res: Response) => {
   }
 
   try {
+    // 1. Update the main User location (Primary/Fallback)
     const user = await User.findByIdAndUpdate(
-      (req as any).user._id,
+      userId,
       {
         location: {
           type: 'Point',
@@ -102,10 +132,24 @@ export const updateLocation = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    console.log(`[Discovery] User ${(req as any).user._id} updated location to:`, [longitude, latitude]);
+    // 2. If deviceId is provided, upsert into UserDevice
+    if (deviceId) {
+      await UserDevice.findOneAndUpdate(
+        { user: userId, deviceId },
+        { 
+          location: { type: 'Point', coordinates: [longitude, latitude] },
+          lastSeen: new Date()
+        },
+        { upsert: true, new: true }
+      );
+      console.log(`[Discovery] User ${userId} updated location for device ${deviceId} to:`, [longitude, latitude]);
+    } else {
+      console.log(`[Discovery] User ${userId} updated primary location to:`, [longitude, latitude]);
+    }
 
     res.json({ message: 'Location updated', location: user?.location });
   } catch (error) {
+    console.error("Update Location Error:", error);
     res.status(500).json({ message: 'Server error', error });
   }
 };
