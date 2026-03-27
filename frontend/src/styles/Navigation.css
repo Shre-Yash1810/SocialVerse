@@ -157,27 +157,29 @@
   }
 
   .sidebar-logo-container {
-    padding: 20px;
+    padding: 0px;
     margin-bottom: 20px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     transition: all 0.3s ease;
+    width: 100%;
   }
 
   .sidebar-logo {
-    height: 40px;
+    height: 85px;
+    width: 100%;
     object-fit: contain;
     transition: all 0.3s ease;
   }
 
   .right-sidebar:hover .sidebar-logo {
-    height: 60px;
+    height: 150px;
   }
 
   .right-sidebar:hover .sidebar-logo-container {
     justify-content: flex-start;
-    padding-left: 25px;
+    padding-left: 10px;
   }
 
   .right-sidebar:hover {
