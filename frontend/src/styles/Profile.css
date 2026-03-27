@@ -296,7 +296,7 @@
 /* Mobile Tweaks */
 @media (max-width: 768px) {
   .profile-container {
-    padding: 105px 20px 100px;
+    padding: 80px 20px 100px;
   }
 
   .profile-header {

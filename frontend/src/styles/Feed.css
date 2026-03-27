@@ -1,7 +1,7 @@
 .feed-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 105px 15px 80px; /* Accounts for 85px fixed top-nav */
+  padding: 80px 15px 80px; /* Accounts for 60px fixed top-nav */
 }
 
 @media (min-width: 768px) {
@@ -175,7 +175,7 @@
 .blogs-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 105px 20px 60px;
+  padding: 80px 20px 60px;
 }
 
 .blogs-header {
@@ -401,7 +401,7 @@
 
 @media (max-width: 600px) {
   .blogs-container {
-    padding-top: 105px;
+    padding-top: 80px;
   }
   
   .blog-featured-card {
