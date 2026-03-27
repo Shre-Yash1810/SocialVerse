@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import { User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle } from 'lucide-react';
 import EditProfileModal from '../components/EditProfileModal';
 import CreatePostModal from '../components/CreatePostModal';
@@ -9,8 +8,8 @@ import BlogDetailModal from '../components/BlogDetailModal';
 import FollowListModal from '../components/FollowListModal';
 import ProfileOptionsModal from '../components/ProfileOptionsModal';
 import MomentViewerModal from '../components/MomentViewerModal';
-import BottomNav from '../components/BottomNav';
 import api from '../services/api';
+import { ProfileSkeleton } from '../components/Skeletons';
 import '../styles/Profile.css';
 
 const ProfilePage: React.FC = () => {
@@ -135,17 +134,11 @@ const ProfilePage: React.FC = () => {
 
   const isPrivateAndNotFollowing = user?.isPrivate && !isOwnProfile && !isFollowing;
 
-  if (loading) return <div className="loading-screen">Loading Profile...</div>;
+  if (loading) return <ProfileSkeleton />;
 
   return (
     <>
-      <div className={`profile-wrapper animate-fade-in ${(isPreviewOpen || isEditOpen || activeDetailPost || activeDetailBlog) ? 'overflow-hidden' : ''}`}>
-        <Navbar 
-          mode={isOwnProfile ? "profile" : "other_profile"} 
-          onCreateClick={isOwnProfile ? () => setIsCreateOpen(true) : undefined} 
-          onSettingsClick={isOwnProfile ? () => navigate('/settings') : undefined} 
-          onMoreClick={!isOwnProfile ? () => setIsProfileOptionsOpen(true) : undefined}
-        />
+      <div className={`profile-wrapper ${(isPreviewOpen || isEditOpen || activeDetailPost || activeDetailBlog) ? 'overflow-hidden' : ''}`}>
         
         <main className="profile-container">
         {/* Header Section */}
@@ -367,7 +360,6 @@ const ProfilePage: React.FC = () => {
           </div>
         </section>
       </main>
-      <BottomNav />
       </div>
 
       {/* Modals outside the layout wrapper to prevent stacking context clipping */}
@@ -391,7 +383,7 @@ const ProfilePage: React.FC = () => {
           onClose={() => setIsCreateOpen(false)} 
           onPostCreated={() => {
             setIsCreateOpen(false);
-            window.location.reload();
+            navigate(0);
           }} 
         />
       )}
@@ -429,7 +421,7 @@ const ProfilePage: React.FC = () => {
         <ProfileOptionsModal 
           user={user} 
           onClose={() => setIsProfileOptionsOpen(false)} 
-          onBlockSuccess={() => window.location.href = '/feed'}
+          onBlockSuccess={() => navigate('/feed')}
         />
       )}
       {activeHighlight && highlights.length > 0 && (

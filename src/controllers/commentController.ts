@@ -4,6 +4,7 @@ import Comment from '../models/Comment';
 import Post from '../models/Post';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
+import { extractUserIdsFromMentions } from '../utils/mentionUtils';
 
 const isMockMode = () => mongoose.connection.readyState !== 1;
 
@@ -24,31 +25,52 @@ export const createComment = async (req: Request, res: Response) => {
 
     const post = await Post.findByIdAndUpdate(postId as string, { $inc: { commentsCount: 1 } });
     
-    // Create notification for the post owner
-    if (post && post.author.toString() !== (req as any).user._id.toString()) {
+    // Track who we've already notified to avoid duplicates
+    const notifiedUserIds = new Set<string>();
+    notifiedUserIds.add((req as any).user._id.toString());
+
+    // 1. Create notification for the post owner
+    if (post && !notifiedUserIds.has(post.author.toString())) {
       const notif = await Notification.create({
         recipient: post.author,
         sender: (req as any).user._id,
         type: 'COMMENT',
         post: postId,
-        extraInfo: text
+        extraInfo: text.substring(0, 50)
       });
       sendRealTimeNotification(post.author.toString(), notif);
+      notifiedUserIds.add(post.author.toString());
     }
 
-    // If it's a reply to another comment, notify the original comment author
+    // 2. If it's a reply to another comment, notify the original comment author
     if (parentCommentId) {
       const parentComment = await Comment.findById(parentCommentId);
-      if (parentComment && parentComment.author.toString() !== (req as any).user._id.toString()) {
+      if (parentComment && !notifiedUserIds.has(parentComment.author.toString())) {
         const notif = await Notification.create({
           recipient: parentComment.author,
           sender: (req as any).user._id,
-          // Sending COMMENT type for replies as well, frontend can distinguish by checking if there's parentComment context if needed, or we just rely on the message. The model only supports 'COMMENT', 'LIKE', 'WAVE', 'FOLLOW', 'MENTION', 'MESSAGE'.
           type: 'COMMENT', 
           post: postId,
-          extraInfo: text
+          extraInfo: text.substring(0, 50)
         });
         sendRealTimeNotification(parentComment.author.toString(), notif);
+        notifiedUserIds.add(parentComment.author.toString());
+      }
+    }
+
+    // 3. Handle Mentions
+    const mentionedUserIds = await extractUserIdsFromMentions(text);
+    for (const mentionId of mentionedUserIds) {
+      if (!notifiedUserIds.has(mentionId.toString())) {
+        const notif = await Notification.create({
+          recipient: mentionId,
+          sender: (req as any).user._id,
+          type: 'MENTION',
+          post: postId,
+          extraInfo: text.substring(0, 50)
+        });
+        sendRealTimeNotification(mentionId.toString(), notif);
+        notifiedUserIds.add(mentionId.toString());
       }
     }
 

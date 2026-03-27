@@ -43,7 +43,8 @@ export const getChats = async (req: Request, res: Response) => {
         path: 'lastMessage',
         populate: { path: 'sender', select: 'userid name' }
       })
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean();
 
     res.json(chats);
   } catch (error) {
@@ -66,7 +67,7 @@ export const getChat = async (req: Request, res: Response) => {
   }
 
   try {
-    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic lastSeen');
+    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic lastSeen').lean();
     if (!chat) return res.status(404).json({ message: 'Chat not found' });
     res.json(chat);
   } catch (error) {
@@ -101,15 +102,27 @@ export const getMessages = async (req: Request, res: Response) => {
   }
 
   try {
-    const messages = await Message.find({ chat: chatId, isDeleted: false })
+    const { limit = 30, before } = req.query;
+    const query: any = { chat: chatId, isDeleted: false };
+    
+    if (before) {
+      query.createdAt = { $lt: new Date(before as string) };
+    }
+
+    const messages = await Message.find(query)
       .populate('sender', 'userid name profilePic')
       .populate({
         path: 'sharedPost',
+        select: 'type content caption author',
         populate: { path: 'author', select: 'userid name profilePic' }
       })
-      .sort({ createdAt: 1 });
+      .populate('sharedMoment')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .lean();
 
-    res.json(messages);
+    // Reverse to return in chronological order
+    res.json(messages.reverse());
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

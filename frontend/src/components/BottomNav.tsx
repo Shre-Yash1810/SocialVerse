@@ -5,32 +5,59 @@ import BytesIcon from './BytesIcon';
 import '../styles/Navigation.css';
 
 const BottomNav: React.FC = () => {
+  const prefetch = (path: string) => {
+    switch (path) {
+      case '/feed': import('../pages/FeedPage'); break;
+      case '/bytes': import('../pages/BytesPage'); break;
+      case '/versechat': import('../pages/VerseChat'); break;
+      case '/blogs': import('../pages/BlogsPage'); break;
+      case '/profile': import('../pages/ProfilePage'); break;
+    }
+  };
 
   return (
-    <>
-      <nav className="bottom-nav">
-        <NavLink to="/feed" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <Home size={26} />
-          <span className="nav-label">Home</span>
-        </NavLink>
-        <NavLink to="/bytes" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <BytesIcon size={26} />
-          <span className="nav-label">Bytes</span>
-        </NavLink>
-        <NavLink to="/versechat" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <MessageCircle size={26} />
-          <span className="nav-label">VerseChat</span>
-        </NavLink>
-        <NavLink to="/blogs" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <BookOpen size={26} />
-          <span className="nav-label">Blogs</span>
-        </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <User size={26} />
-          <span className="nav-label">Profile</span>
-        </NavLink>
-      </nav>
-    </>
+    <nav className="bottom-nav">
+      <NavLink 
+        to="/feed" 
+        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        onMouseEnter={() => prefetch('/feed')}
+      >
+        <Home size={26} />
+        <span className="nav-label">Home</span>
+      </NavLink>
+      <NavLink 
+        to="/bytes" 
+        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        onMouseEnter={() => prefetch('/bytes')}
+      >
+        <BytesIcon size={26} />
+        <span className="nav-label">Bytes</span>
+      </NavLink>
+      <NavLink 
+        to="/versechat" 
+        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        onMouseEnter={() => prefetch('/versechat')}
+      >
+        <MessageCircle size={26} />
+        <span className="nav-label">VerseChat</span>
+      </NavLink>
+      <NavLink 
+        to="/blogs" 
+        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        onMouseEnter={() => prefetch('/blogs')}
+      >
+        <BookOpen size={26} />
+        <span className="nav-label">Blogs</span>
+      </NavLink>
+      <NavLink 
+        to="/profile" 
+        className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        onMouseEnter={() => prefetch('/profile')}
+      >
+        <User size={26} />
+        <span className="nav-label">Profile</span>
+      </NavLink>
+    </nav>
   );
 };
 

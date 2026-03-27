@@ -54,6 +54,7 @@ export const registerUser = async (req: Request, res: Response) => {
         userid: userObj.userid,
         name: userObj.name,
         email: userObj.email,
+        profilePic: userObj.profilePic,
         token: generateToken(userObj._id.toString()),
       });
     } else {
@@ -94,6 +95,7 @@ export const loginUser = async (req: Request, res: Response) => {
         userid: user.userid,
         name: user.name,
         email: user.email,
+        profilePic: user.profilePic,
         token: generateToken((user._id as unknown) as string),
       });
     } else {

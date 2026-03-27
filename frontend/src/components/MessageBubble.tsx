@@ -26,7 +26,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
           <img src={msg.sender?.profilePic || `https://ui-avatars.com/api/?name=${msg.sender?.userid}&size=64`} alt="" style={{ width: '100%', height: '100%' }} />
         </div>
       )}
-      <div 
+      <div
         onMouseEnter={() => setHoveredMessageId(msg._id)}
         onMouseLeave={() => setHoveredMessageId(null)}
         onPointerDown={(e) => {
@@ -41,7 +41,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             e.preventDefault();
           }
         }}
-        style={{ 
+        style={{
           background: isMe ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(168, 85, 247, 0.8))' : 'rgba(255, 255, 255, 0.15)',
           backdropFilter: 'blur(16px)',
           padding: msg.type === 'post_share' ? '0' : '12px 16px',
@@ -59,28 +59,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         }}
       >
         {isMe && hoveredMessageId === msg._id && (
-          <div 
-            className="desktop-only" 
-            style={{ 
-              position: 'absolute', 
-              left: '-32px', 
-              top: 0, 
-              bottom: 0, 
-              width: '32px', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <div
+            className="desktop-only"
+            style={{
+              position: 'absolute',
+              left: '-32px',
+              top: 0,
+              bottom: 0,
+              width: '32px',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               zIndex: 10
             }}
           >
-            <div 
-              onClick={(e) => { e.stopPropagation(); if (window.confirm('Unsend?')) handleUnsendMessage(msg._id); }} 
-              style={{ 
-                background: 'rgba(255,255,255,0.15)', 
-                borderRadius: '50%', 
-                padding: '6px', 
-                cursor: 'pointer', 
-                display: 'flex', 
+            <div
+              onClick={(e) => { e.stopPropagation(); if (window.confirm('Unsend?')) handleUnsendMessage(msg._id); }}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: '50%',
+                padding: '6px',
+                cursor: 'pointer',
+                display: 'flex',
                 alignItems: 'center',
                 backdropFilter: 'blur(4px)',
                 transition: 'all 0.2s'
@@ -93,27 +93,27 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
           </div>
         )}
         {isMe && selectedMessageId === msg._id && (
-          <div 
-            style={{ 
-              position: 'absolute', 
-              top: '-40px', 
-              left: '50%', 
-              transform: 'translateX(-50%)', 
-              background: '#ef4444', 
-              color: 'white', 
-              padding: '6px 12px', 
-              borderRadius: '10px', 
-              fontSize: '0.8rem', 
-              fontWeight: 'bold', 
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)', 
-              zIndex: 1000, 
-              whiteSpace: 'nowrap' 
-            }} 
+          <div
+            style={{
+              position: 'absolute',
+              top: '-40px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#ef4444',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              zIndex: 1000,
+              whiteSpace: 'nowrap'
+            }}
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              handleUnsendMessage(msg._id); 
-              setSelectedMessageId(null); 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUnsendMessage(msg._id);
+              setSelectedMessageId(null);
             }}
             className="unsend-btn"
           >

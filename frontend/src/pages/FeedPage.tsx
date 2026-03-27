@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
 import PostDetailModal from '../components/PostDetailModal';
 import { formatRelativeTime } from '../utils/timeUtils';
+import { FeedSkeleton } from '../components/Skeletons';
+import Linkify from '../components/Linkify';
 import '../styles/Feed.css';
 
 interface Post {
@@ -134,12 +134,11 @@ const FeedPage: React.FC = () => {
     setActiveCommentPost(id);
   };
 
-  if (loading) return <div className="loading-screen">Syncing with the verse...</div>;
+  if (loading) return <FeedSkeleton />;
 
   return (
     <div className="feed-page">
-      <Navbar />
-      <main className="feed-container animate-fade-in">
+      <main className="feed-container">
         {posts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
             <h3>No posts yet.</h3>
@@ -186,7 +185,7 @@ const FeedPage: React.FC = () => {
               <div className="post-content">
                 <p><strong>{post.likes?.length || 0} likes</strong></p>
                 <p className="post-caption">
-                  <strong>{post.author.userid || post.author.name}</strong> {post.caption}
+                  <strong>{post.author.userid || post.author.name}</strong> <Linkify text={post.caption || ''} />
                 </p>
                 {post.commentsCount > 0 && (
                   <p 
@@ -201,7 +200,6 @@ const FeedPage: React.FC = () => {
           ))
         )}
       </main>
-      <BottomNav />
       {activeCommentPost && (
         <CommentsModal 
           postId={activeCommentPost} 

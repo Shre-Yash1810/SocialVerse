@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 import BlogDetailModal from '../components/BlogDetailModal';
 import '../styles/Feed.css';
@@ -58,8 +56,7 @@ const BlogsPage: React.FC = () => {
 
   return (
     <div className="blogs-page">
-      <Navbar mode="none" />
-      <main className="blogs-container animate-fade-in">
+      <main className="blogs-container">
         <header className="blogs-header">
           <h2>The Social Verse Blogs</h2>
           <p>Explore thoughts, stories, and ideas from our community</p>
@@ -134,7 +131,6 @@ const BlogsPage: React.FC = () => {
           </>
         )}
       </main>
-      <BottomNav />
       {activeDetailBlog && (
         <BlogDetailModal 
           post={activeDetailBlog} 

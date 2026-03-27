@@ -6,6 +6,7 @@ import XPService from '../services/XPService';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
 import CloudinaryService from '../services/CloudinaryService';
+import { extractUserIdsFromMentions } from '../utils/mentionUtils';
 import mongoose from 'mongoose';
 
 export const createPost = async (req: Request, res: Response) => {
@@ -27,6 +28,24 @@ export const createPost = async (req: Request, res: Response) => {
       taggedUsers,
       expiresAt: type === 'Moment' ? new Date(Date.now() + 24 * 60 * 60 * 1000) : expiresAt,
     });
+
+    // Handle Mentions
+    if (caption) {
+      const mentionedUserIds = await extractUserIdsFromMentions(caption);
+      for (const mentionId of mentionedUserIds) {
+        // Don't notify yourself
+        if (mentionId.toString() === (req as any).user._id.toString()) continue;
+
+        const notif = await Notification.create({
+          recipient: mentionId,
+          sender: (req as any).user._id,
+          type: 'MENTION',
+          post: post._id,
+          extraInfo: caption.substring(0, 50)
+        });
+        sendRealTimeNotification(mentionId.toString(), notif);
+      }
+    }
 
     res.status(201).json(post);
   } catch (error) {

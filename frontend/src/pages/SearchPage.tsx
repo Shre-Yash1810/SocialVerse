@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Hand, Check } from 'lucide-react';
-import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 import '../styles/Feed.css';
 
@@ -197,7 +196,7 @@ const SearchPage: React.FC = () => {
   };
 
   return (
-    <div className="feed-page animate-fade-in" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px' }}>
+    <div className="feed-page" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px' }}>
       <div style={{ background: 'white', padding: '16px', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
         <div style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ position: 'absolute', top: '14px', left: '16px', color: '#94a3b8' }}>
@@ -285,7 +284,6 @@ const SearchPage: React.FC = () => {
         </div>
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 };

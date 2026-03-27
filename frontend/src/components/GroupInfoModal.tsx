@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, UserMinus, UserPlus, LogOut, Edit2, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface GroupInfoModalProps {
@@ -10,6 +11,7 @@ interface GroupInfoModalProps {
 }
 
 const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ chat, currentUser, onClose, onUpdate }) => {
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(chat.name || '');
@@ -74,7 +76,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({ chat, currentUser, onCl
     try {
       await api.delete(`/chats/${chat._id}/leave`);
       onClose();
-      window.location.href = '/versechat';
+      navigate('/versechat');
     } catch (err) {
       console.error('Failed to leave group:', err);
     }

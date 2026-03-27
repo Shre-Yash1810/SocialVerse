@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Users, MessageSquare, ChevronRight, MoreVertical } from 'lucide-react';
 import MomentBar from '../components/MomentBar';
-import BottomNav from '../components/BottomNav';
 import api from '../services/api';
+import { ChatListSkeleton } from '../components/ChatSkeletons';
 
 import CreateGroupModal from '../components/CreateGroupModal';
 import CreateMomentModal from '../components/CreateMomentModal';
@@ -47,8 +47,20 @@ const VerseChat: React.FC = () => {
   });
 
   const handleMomentClick = (userId: string) => {
+    const myId = localStorage.getItem('userid')?.toLowerCase();
+    const myDbId = localStorage.getItem('db_id');
+    
     if (userId === 'me') {
-      setIsCreateMomentOpen(true);
+      const myIdx = moments.findIndex((m: any) => 
+        (m.user._id.toString() === myDbId) || 
+        (m.user.userid?.toLowerCase() === myId)
+      );
+      
+      if (myIdx !== -1) {
+        setActiveMomentIndex(myIdx);
+      } else {
+        setIsCreateMomentOpen(true);
+      }
     } else {
       const idx = moments.findIndex((m: any) => m.user._id === userId);
       if (idx !== -1) setActiveMomentIndex(idx);
@@ -63,7 +75,7 @@ const VerseChat: React.FC = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px' }}>
       
       {/* Header & Search */}
       <div style={{ padding: '20px 16px 10px', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
@@ -167,7 +179,7 @@ const VerseChat: React.FC = () => {
       {/* Chat List */}
       <div style={{ padding: '8px 0' }}>
         {loading ? (
-          <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '40px' }}>Loading conversations...</p>
+          <ChatListSkeleton />
         ) : filteredChats.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '60px', padding: '0 40px' }}>
             <MessageSquare size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
@@ -239,25 +251,24 @@ const VerseChat: React.FC = () => {
 
       {activeMomentIndex !== null && moments[activeMomentIndex] && (
         <MomentViewerModal
+          key={activeMomentIndex}
           momentGroup={moments[activeMomentIndex]}
-          onClose={() => setActiveMomentIndex(null)}
+          onClose={() => setTimeout(() => setActiveMomentIndex(null), 0)}
           onNextGroup={() => {
-            if (activeMomentIndex < moments.length - 1) setActiveMomentIndex(activeMomentIndex + 1);
-            else setActiveMomentIndex(null);
+            setTimeout(() => {
+              if (activeMomentIndex < moments.length - 1) setActiveMomentIndex(activeMomentIndex + 1);
+              else setActiveMomentIndex(null);
+            }, 0);
           }}
           onPrevGroup={() => {
-            if (activeMomentIndex > 0) setActiveMomentIndex(activeMomentIndex - 1);
-            else setActiveMomentIndex(null);
+            setTimeout(() => {
+              if (activeMomentIndex > 0) setActiveMomentIndex(activeMomentIndex - 1);
+              else setActiveMomentIndex(null);
+            }, 0);
           }}
         />
       )}
 
-      <style>{`
-        .chat-item-hover:hover {
-          background-color: #f8fafc;
-        }
-      `}</style>
-      <BottomNav />
     </div>
   );
 };

@@ -62,7 +62,7 @@ const ChatPage: React.FC = () => {
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isLongPressing, setIsLongPressing] = useState(false); // Added
-  
+
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const virtuosoRef = useRef<any>(null);
@@ -75,7 +75,7 @@ const ChatPage: React.FC = () => {
     const isDev = import.meta.env.DEV;
     const socketUrl = isDev ? '' : 'https://social-verse-backend-w9xr.onrender.com';
     console.log('[Socket Debug] isDev:', isDev, 'socketUrl:', socketUrl);
-    
+
     // Initialize socket
     const socket = io(socketUrl, {
       withCredentials: true,
@@ -208,10 +208,10 @@ const ChatPage: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff' }}>{chatName}</h3>
             <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, color: '#e2e8f0', fontWeight: 500 }}>
               {chat?.isGroup ? `${chat.participants.length} members` : (
-                otherParticipant?.lastSeen 
-                  ? (new Date().getTime() - new Date(otherParticipant.lastSeen).getTime() < 5 * 60 * 1000 
-                      ? 'Active now' 
-                      : `Active ${formatRelativeTime(otherParticipant.lastSeen)}`)
+                otherParticipant?.lastSeen
+                  ? (new Date().getTime() - new Date(otherParticipant.lastSeen).getTime() < 5 * 60 * 1000
+                    ? 'Active now'
+                    : `Active ${formatRelativeTime(otherParticipant.lastSeen)}`)
                   : 'Offline'
               )}
             </p>

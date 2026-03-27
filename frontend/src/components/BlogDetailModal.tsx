@@ -3,6 +3,7 @@ import { X, Heart, MessageCircle, Share2 } from 'lucide-react';
 import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
+import CommentsModal from './CommentsModal';
 import '../styles/Feed.css';
 
 interface BlogDetailModalProps {
@@ -14,6 +15,7 @@ interface BlogDetailModalProps {
 const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpdate }) => {
   const [localPost, setLocalPost] = useState(post);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
   const handleLike = async () => {
     try {
@@ -130,7 +132,7 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
           <span style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>{localPost.likes?.length || 0}</span>
         </div>
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 25px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px 25px' }} onClick={() => setIsCommentsOpen(true)}>
           <MessageCircle size={22} color="#fff" />
           <span style={{ fontSize: '0.95rem', color: '#fff', fontWeight: 600 }}>{post.commentsCount || 0}</span>
         </div>
@@ -141,11 +143,26 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
         </div>
       </div>
 
+      {isCommentsOpen && (
+        <div style={{ zIndex: 10001, position: 'relative' }}>
+        <CommentsModal 
+          postId={post._id} 
+          post={post}
+          onClose={() => setIsCommentsOpen(false)} 
+          onCommentAdded={() => {
+            if (onUpdate) onUpdate();
+          }}
+        />
+        </div>
+      )}
+
       {isShareModalOpen && (
+        <div style={{ zIndex: 10001, position: 'relative' }}>
         <ShareModal 
           postId={post._id} 
           onClose={() => setIsShareModalOpen(false)} 
         />
+        </div>
       )}
     </div>
   );

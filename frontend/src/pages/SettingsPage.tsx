@@ -70,7 +70,7 @@ const SettingsPage: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userid');
-    window.location.href = '/auth';
+    navigate('/auth');
   };
 
   if (loading) return <div className="loading-screen">Loading Settings...</div>;

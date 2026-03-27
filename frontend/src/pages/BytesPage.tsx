@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import BottomNav from '../components/BottomNav';
 import { Heart, MessageCircle, Share2, MoreVertical, Music } from 'lucide-react';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
@@ -7,6 +6,7 @@ import ShareModal from '../components/ShareModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { useNavigate } from 'react-router-dom';
 import { useByte } from '../context/ByteContext';
+import Linkify from '../components/Linkify';
 import '../styles/Feed.css';
 
 interface Reel {
@@ -110,7 +110,9 @@ const BytePlayer: React.FC<{
               Follow
             </button>
           </div>
-          <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>{reel.caption}</p>
+          <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>
+            <Linkify text={reel.caption || ''} />
+          </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', opacity: 0.9 }}>
             <Music size={14} />
             <span>Original Audio - {reel.author.userid || reel.author.name}</span>
@@ -221,7 +223,6 @@ const BytesPage: React.FC = () => {
           ))
         )}
       </main>
-      <BottomNav />
       {activeCommentPost && (
         <CommentsModal 
           postId={activeCommentPost} 

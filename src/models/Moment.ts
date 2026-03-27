@@ -8,6 +8,8 @@ export interface IMoment extends Document {
   isHighlight: boolean;
   expiresAt?: Date | null;
   createdAt: Date;
+  overlayData?: string; // JSON string containing text, positions, etc.
+  mentions?: mongoose.Types.ObjectId[];
 }
 
 const MomentSchema = new Schema<IMoment>(
@@ -17,6 +19,8 @@ const MomentSchema = new Schema<IMoment>(
     type: { type: String, enum: ['image', 'video'], default: 'image' },
     viewers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     isHighlight: { type: Boolean, default: false },
+    overlayData: { type: String },
+    mentions: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now

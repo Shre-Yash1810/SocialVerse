@@ -6,7 +6,8 @@ export interface IMessage extends Document {
   text?: string;
   media?: string;
   type: 'text' | 'image' | 'video' | 'post_share' | 'emoji';
-  sharedPost?: mongoose.Types.ObjectId; // Reference to the shared post/byte/blog
+  sharedPost?: mongoose.Types.ObjectId; // Reference to Post model
+  sharedMoment?: mongoose.Types.ObjectId; // Reference to Moment model
   isRead: boolean;
   isDeleted: boolean; // For unsend
 }
@@ -18,11 +19,16 @@ const MessageSchema = new Schema<IMessage>(
     text: { type: String },
     media: { type: String },
     sharedPost: { type: Schema.Types.ObjectId, ref: 'Post' },
+    sharedMoment: { type: Schema.Types.ObjectId, ref: 'Moment' },
     type: { type: String, enum: ['text', 'image', 'video', 'post_share', 'emoji'], default: 'text' },
     isRead: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+// Optimize for chat history queries (find by chat, sort by createdAt)
+MessageSchema.index({ chat: 1, createdAt: -1 });
+MessageSchema.index({ sender: 1 });
 
 export default mongoose.model<IMessage>('Message', MessageSchema);

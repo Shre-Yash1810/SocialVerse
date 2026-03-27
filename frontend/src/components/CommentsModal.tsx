@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Send, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
+import Linkify from './Linkify';
 
 interface Comment {
   _id: string;
@@ -89,7 +90,9 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                   <img src={post.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{post.author.userid || post.author.name}</p>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '2px' }}>{post.caption}</p>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      <Linkify text={post.caption || ''} />
+                    </p>
                     <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px' }}>{formatRelativeTime(post.createdAt)}</p>
                   </div>
                 </div>
@@ -110,7 +113,9 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                           </button>
                         )}
                       </div>
-                      <p style={{ fontSize: '0.9rem', color: '#334155', marginTop: '2px' }}>{comment.text}</p>
+                      <p style={{ fontSize: '0.9rem', color: '#334155', marginTop: '2px' }}>
+                        <Linkify text={comment.text} />
+                      </p>
                       <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px' }}>{formatRelativeTime(comment.createdAt)}</p>
                     </div>
                   </div>

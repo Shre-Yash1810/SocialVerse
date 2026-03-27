@@ -21,7 +21,7 @@ const Navbar: React.FC<NavbarProps> = ({ mode = 'home', onCreateClick, onSetting
           src={logo} 
           alt="SocialVerse" 
           style={{ height: '28px', cursor: 'pointer' }} 
-          onClick={() => window.location.href = '/feed'} 
+          onClick={() => navigate('/feed')} 
         />
       </div>
       <div className={`top-nav-right ${mode === 'other_profile' ? 'desktop-visible' : ''}`}>

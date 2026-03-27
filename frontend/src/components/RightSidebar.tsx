@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, BookOpen, MessageCircle, Bell, PlusSquare, User, Settings } from 'lucide-react';
 import BytesIcon from './BytesIcon';
 import CreatePostModal from './CreatePostModal';
@@ -7,6 +7,7 @@ import CreatePostModal from './CreatePostModal';
 const RightSidebar: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (location.pathname === '/auth') {
     return null;
@@ -62,7 +63,7 @@ const RightSidebar: React.FC = () => {
           onClose={() => setIsCreateOpen(false)} 
           onPostCreated={() => {
             setIsCreateOpen(false);
-            window.location.reload();
+            navigate(0);
           }} 
         />
       )}

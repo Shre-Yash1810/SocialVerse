@@ -60,6 +60,7 @@ export const seedInitialData = async () => {
       await User.insertMany(mockUsers);
     }
 
+    /* 
     // Seed mock moments if empty
     const momentCount = await Moment.countDocuments();
     if (momentCount === 0) {
@@ -73,6 +74,7 @@ export const seedInitialData = async () => {
         });
       }
     }
+    */
 
     // Seed mock chats if empty
     const chatCount = await Chat.countDocuments();

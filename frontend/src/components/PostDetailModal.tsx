@@ -3,6 +3,7 @@ import { X, Heart, MessageCircle, Share2, Bookmark, ChevronLeft, ChevronRight } 
 import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
+import Linkify from './Linkify';
 import '../styles/Feed.css';
 
 interface PostDetailModalProps {
@@ -77,10 +78,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
   const handleLike = async () => {
     try {
       const res = await api.post(`/posts/${post._id}/like`);
-      const updatedPost = { 
-        ...localPost, 
-        isLiked: !localPost.isLiked, 
-        likes: res.data.likes 
+      const updatedPost = {
+        ...localPost,
+        isLiked: !localPost.isLiked,
+        likes: res.data.likes
       };
       setLocalPost(updatedPost);
       if (onUpdate) onUpdate();
@@ -125,8 +126,8 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
 
       <div className="post-detail-modal-content animate-scale">
         <div className="pd-header mobile-only" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #efefef' }}>
-           <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-           <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
+          <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
+          <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
         </div>
 
         {/* Media Section */}
@@ -134,11 +135,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
           {localPost.type === 'Image' ? (
             <img src={localPost.content} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           ) : (
-            <video 
-              src={localPost.content} 
-              style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }} 
-              autoPlay 
-              loop 
+            <video
+              src={localPost.content}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}
+              autoPlay
+              loop
               playsInline
               muted={isMuted}
               onClick={() => setIsMuted(!isMuted)}
@@ -148,10 +149,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
 
         {/* Info Section */}
         <div className="post-detail-info">
-          
+
           <div className="pd-header desktop-only" style={{ padding: '16px', borderBottom: '1px solid #efefef', display: 'flex', alignItems: 'center', gap: '12px' }}>
-             <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-             <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
+            <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
+            <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
           </div>
 
           <div className="mobile-only" style={{ padding: '12px 16px' }}>
@@ -167,7 +168,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
             {localPost.caption && (
               <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
                 <strong style={{ marginRight: '6px' }}>{localPost.author?.userid}</strong>
-                {localPost.caption}
+                <Linkify text={localPost.caption} />
               </p>
             )}
             <p onClick={() => setShowMobileComments(true)} style={{ color: '#8e8e8e', fontSize: '0.85rem', marginTop: '6px', cursor: 'pointer' }}>
@@ -182,7 +183,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                   <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                   <div>
                     <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
-                    <p style={{ fontSize: '0.9rem' }}>{comment.text}</p>
+                    <p style={{ fontSize: '0.9rem' }}>
+                      <Linkify text={comment.text} />
+                    </p>
                     <span style={{ fontSize: '0.75rem', color: '#8e8e8e', marginTop: '4px', display: 'block' }}>{formatRelativeTime(comment.createdAt)}</span>
                   </div>
                 </div>
@@ -208,7 +211,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                     <X size={20} />
                   </button>
                 </div>
-                
+
                 <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
                   {comments.length === 0 ? (
                     <p style={{ textAlign: 'center', color: '#8e8e8e', marginTop: '20px' }}>No comments yet. Be the first to reply!</p>
@@ -218,7 +221,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                         <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                         <div>
                           <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
-                          <p style={{ fontSize: '0.9rem', color: '#262626' }}>{comment.text}</p>
+                          <p style={{ fontSize: '0.9rem', color: '#262626' }}>
+                            <Linkify text={comment.text} />
+                          </p>
                           <span style={{ fontSize: '0.75rem', color: '#8e8e8e', marginTop: '4px', display: 'block' }}>{formatRelativeTime(comment.createdAt)}</span>
                         </div>
                       </div>
@@ -227,14 +232,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                 </div>
 
                 <div style={{ padding: '12px 16px', borderTop: '1px solid #efefef', display: 'flex', gap: '12px', background: 'white', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Add a comment..." 
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.9rem' }}
                   />
-                  <button 
+                  <button
                     onClick={handleAddComment}
                     disabled={!newComment.trim() || loading}
                     style={{ background: 'none', border: 'none', color: '#0095f6', fontWeight: 600, cursor: 'pointer', opacity: !newComment.trim() ? 0.5 : 1 }}
@@ -258,22 +263,22 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
             {localPost.caption && (
               <p style={{ fontSize: '0.9rem', marginBottom: '8px', lineHeight: '1.4' }}>
                 <strong style={{ marginRight: '6px' }}>{localPost.author?.userid}</strong>
-                {localPost.caption}
+                <Linkify text={localPost.caption} />
               </p>
             )}
             <p style={{ fontSize: '0.65rem', color: '#8e8e8e', marginTop: '4px', textTransform: 'uppercase' }}>{formatRelativeTime(localPost.createdAt)}</p>
           </div>
 
           <form onSubmit={handleAddComment} className="desktop-only" style={{ padding: '12px 16px', borderTop: '1px solid #efefef', display: 'flex', gap: '12px' }}>
-            <input 
-              type="text" 
-              placeholder="Add a comment..." 
+            <input
+              type="text"
+              placeholder="Add a comment..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.9rem' }}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={!newComment.trim() || loading}
               style={{ background: 'none', border: 'none', color: '#0095f6', fontWeight: 600, cursor: 'pointer', opacity: !newComment.trim() ? 0.5 : 1 }}
             >
@@ -283,9 +288,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
         </div>
       </div>
       {isShareModalOpen && (
-        <ShareModal 
-          postId={post._id} 
-          onClose={() => setIsShareModalOpen(false)} 
+        <ShareModal
+          postId={post._id}
+          onClose={() => setIsShareModalOpen(false)}
         />
       )}
     </div>

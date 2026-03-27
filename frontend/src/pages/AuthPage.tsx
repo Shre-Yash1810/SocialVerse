@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import Branding from '../components/Branding';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import '../styles/Auth.css';
 
 const AuthPage: React.FC = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -29,14 +31,15 @@ const AuthPage: React.FC = () => {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('userid', res.data.userid);
         localStorage.setItem('db_id', res.data._id);
-        window.location.href = '/profile';
+        localStorage.setItem('profilePic', res.data.profilePic || '');
+        navigate('/profile');
       } else {
         // First step of signup (email/password)
         // Note: Backend registerUser expects all fields. 
         // We'll store email/password in session for now and move to onboarding.
         sessionStorage.setItem('signup_email', formData.email);
         sessionStorage.setItem('signup_password', formData.password);
-        window.location.href = isLogin ? '/profile' : '/onboarding';
+        navigate(isLogin ? '/profile' : '/onboarding');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Something went wrong');

@@ -9,19 +9,36 @@ const MomentBar: React.FC<MomentBarProps> = ({ moments, onMomentClick }) => {
   return (
     <div className="moment-bar-container">
       <div className="moment-scroll-wrapper">
-        {/* User's own add moment button */}
-        <div className="moment-item" onClick={() => onMomentClick('me')}>
-          <div className="saturn-ring-container">
-            <div className="saturn-ring ring-add"></div>
-            <div className="saturn-core">
-              <div className="add-plus">+</div>
+        {/* User's own moment / Add moment */}
+        {(() => {
+          const myId = localStorage.getItem('userid')?.toLowerCase();
+          const myDbId = localStorage.getItem('db_id');
+          const myMoment = moments.find(m => 
+            (m.user._id.toString() === myDbId) || 
+            (m.user.userid?.toLowerCase() === myId)
+          );
+          const myProfilePic = myMoment?.user.profilePic || localStorage.getItem('profilePic') || `https://ui-avatars.com/api/?name=${encodeURIComponent(myId || 'Me')}&background=random`;
+          
+          return (
+            <div className="moment-item" onClick={() => onMomentClick('me')}>
+              <div className="saturn-ring-container">
+                <div className={`saturn-ring ${!myMoment ? 'ring-add' : 'ring-active'}`}></div>
+                <div className="saturn-core">
+                  <img src={myProfilePic} alt="Your Story" />
+                  {!myMoment && (
+                    <div className="mini-add-badge">
+                      <div className="add-plus">+</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <span className="moment-label">Your Story</span>
             </div>
-          </div>
-          <span className="moment-label">Your Moment</span>
-        </div>
+          );
+        })()}
 
-        {/* Following users' moments */}
-        {moments.map((item) => (
+        {/* Following users' moments (excluding self) */}
+        {moments.filter(m => m.user.userid !== localStorage.getItem('userid')).map((item) => (
           <div key={item.user._id} className="moment-item" onClick={() => onMomentClick(item.user._id)}>
             <div className="saturn-ring-container">
               <div className="saturn-ring"></div>
@@ -96,11 +113,10 @@ const MomentBar: React.FC<MomentBarProps> = ({ moments, onMomentClick }) => {
         }
         .saturn-ring {
           position: absolute;
-          width: 126px;
-          height: 50px;
-          border: 6px solid var(--primary);
+          width: 60px;
+          height: 60px;
+          border: 2px solid var(--primary);
           border-radius: 50%;
-          transform: rotateX(75deg) rotateY(-25deg);
           z-index: 2;
           opacity: 1;
         }
@@ -109,6 +125,35 @@ const MomentBar: React.FC<MomentBarProps> = ({ moments, onMomentClick }) => {
           border-color: #cbd5e1;
           border-style: dotted;
           opacity: 0.6;
+        }
+        .saturn-ring.ring-active {
+          border-color: #6366f1;
+        }
+        .saturn-core img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .mini-add-badge {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          background: #6366f1;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: 2px solid white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+        }
+        .mini-add-badge .add-plus {
+          font-size: 14px;
+          color: white;
+          font-weight: 900;
+          margin-top: -1px;
         }
 Line 142: 
         .add-plus {
