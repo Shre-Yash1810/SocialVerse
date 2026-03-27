@@ -201,7 +201,7 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="feed-page" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px' }}>
-      <div style={{ background: 'white', padding: '16px', position: 'sticky', top: '70px', zIndex: 50, borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+      <div style={{ background: 'white', padding: '16px', position: 'sticky', top: '85px', zIndex: 50, borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
         <div style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ position: 'absolute', top: '14px', left: '16px', color: '#94a3b8' }}>
             <Search size={20} />
