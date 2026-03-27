@@ -7,7 +7,7 @@ interface BrandingProps {
   showName?: boolean;
 }
 
-const Branding: React.FC<BrandingProps> = ({ subtitle, size = 'medium', showName = true }) => {
+const Branding: React.FC<BrandingProps> = ({ subtitle, size = 'medium', showName = false }) => {
   const sizes = {
     small: '32px',
     medium: '48px',
