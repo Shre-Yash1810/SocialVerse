@@ -8,7 +8,7 @@
   width: 100%;
   max-width: 100%; /* Full width as requested */
   margin: 0;
-  padding: 110px 5% 100px; /* Accounts for fixed top-nav and bottom-nav space */
+  padding: 120px 5% 100px; /* Accounts for 70px fixed top-nav and bottom-nav space */
 }
 
 @media (min-width: 768px) {
@@ -295,7 +295,7 @@
 /* Mobile Tweaks */
 @media (max-width: 768px) {
   .profile-container {
-    padding: 80px 20px 100px;
+    padding: 90px 20px 100px;
   }
 
   .profile-header {
