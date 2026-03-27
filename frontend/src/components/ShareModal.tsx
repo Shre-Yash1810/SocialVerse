@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, Send, Check } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface Target {
   _id: string;
@@ -17,6 +18,7 @@ interface ShareModalProps {
 }
 
 const ShareModal: React.FC<ShareModalProps> = ({ postId, onClose }) => {
+  const { user } = useUser();
   const [search, setSearch] = useState('');
   const [recentChats, setRecentChats] = useState<Target[]>([]);
   const [searchResults, setSearchResults] = useState<Target[]>([]);
@@ -39,7 +41,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ postId, onClose }) => {
               type: 'chat'
             };
           } else {
-            const other = c.participants.find((p: any) => p.userid !== localStorage.getItem('userid'));
+            const other = c.participants.find((p: any) => p.userid !== user?.userid);
             return {
               _id: c._id,
               userid: other?.userid,

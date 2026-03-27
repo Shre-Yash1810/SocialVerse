@@ -10,6 +10,7 @@ import ProfileOptionsModal from '../components/ProfileOptionsModal';
 import MomentViewerModal from '../components/MomentViewerModal';
 import api from '../services/api';
 import { ProfileSkeleton } from '../components/Skeletons';
+import { useUser } from '../context/UserContext';
 import '../styles/Profile.css';
 
 const ProfilePage: React.FC = () => {
@@ -31,16 +32,14 @@ const ProfilePage: React.FC = () => {
   const [highlights, setHighlights] = useState<any[]>([]);
   const [activeHighlight, setActiveHighlight] = useState(false);
 
-  const currentUserId = localStorage.getItem('userid');
+  const { user: currentUser } = useUser();
+  const currentUserId = currentUser?.userid;
   const targetId = urlHandle || currentUserId;
   const isOwnProfile = !urlHandle || urlHandle === currentUserId;
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!targetId) {
-        navigate('/auth');
-        return;
-      }
+      if (!targetId) return;
 
       setLoading(true);
       try {

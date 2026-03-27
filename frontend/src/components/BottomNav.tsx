@@ -21,6 +21,7 @@ const BottomNav: React.FC = () => {
         to="/feed" 
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         onMouseEnter={() => prefetch('/feed')}
+        onTouchStart={() => prefetch('/feed')}
       >
         <Home size={26} />
         <span className="nav-label">Home</span>
@@ -29,6 +30,7 @@ const BottomNav: React.FC = () => {
         to="/bytes" 
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         onMouseEnter={() => prefetch('/bytes')}
+        onTouchStart={() => prefetch('/bytes')}
       >
         <BytesIcon size={26} />
         <span className="nav-label">Bytes</span>
@@ -37,6 +39,7 @@ const BottomNav: React.FC = () => {
         to="/versechat" 
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         onMouseEnter={() => prefetch('/versechat')}
+        onTouchStart={() => prefetch('/versechat')}
       >
         <MessageCircle size={26} />
         <span className="nav-label">VerseChat</span>
@@ -45,6 +48,7 @@ const BottomNav: React.FC = () => {
         to="/blogs" 
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         onMouseEnter={() => prefetch('/blogs')}
+        onTouchStart={() => prefetch('/blogs')}
       >
         <BookOpen size={26} />
         <span className="nav-label">Blogs</span>
@@ -53,6 +57,7 @@ const BottomNav: React.FC = () => {
         to="/profile" 
         className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         onMouseEnter={() => prefetch('/profile')}
+        onTouchStart={() => prefetch('/profile')}
       >
         <User size={26} />
         <span className="nav-label">Profile</span>

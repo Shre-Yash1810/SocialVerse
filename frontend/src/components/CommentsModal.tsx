@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, Trash2 } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import { formatRelativeTime } from '../utils/timeUtils';
 import Linkify from './Linkify';
 
@@ -26,10 +27,11 @@ interface CommentsModalProps {
 }
 
 const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, onCommentAdded }) => {
+  const { user } = useUser();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-  const currentUserId = localStorage.getItem('userid');
+  const currentUserId = user?.userid;
 
   const fetchComments = async () => {
     try {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, Trash2, Star, Loader2 } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface MomentViewerModalProps {
   momentGroup: any;
@@ -18,12 +19,13 @@ const FONTS = {
 };
 
 const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onClose, onNextGroup, onPrevGroup }) => {
+  const { user } = useUser();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showViewers, setShowViewers] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  const currentUserId = localStorage.getItem('userid');
+  const currentUserId = user?.userid;
   const duration = 5000; // 5 seconds per moment
   const timerRef = useRef<any>(null);
 

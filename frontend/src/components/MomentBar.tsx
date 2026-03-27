@@ -1,4 +1,5 @@
 import React from 'react';
+import { useUser } from '../context/UserContext';
 
 interface MomentBarProps {
   moments: any[];
@@ -6,18 +7,19 @@ interface MomentBarProps {
 }
 
 const MomentBar: React.FC<MomentBarProps> = ({ moments, onMomentClick }) => {
+  const { user } = useUser();
   return (
     <div className="moment-bar-container">
       <div className="moment-scroll-wrapper">
         {/* User's own moment / Add moment */}
         {(() => {
-          const myId = localStorage.getItem('userid')?.toLowerCase();
-          const myDbId = localStorage.getItem('db_id');
+          const myId = user?.userid?.toLowerCase();
+          const myDbId = user?._id;
           const myMoment = moments.find(m => 
             (m.user._id.toString() === myDbId) || 
             (m.user.userid?.toLowerCase() === myId)
           );
-          const myProfilePic = myMoment?.user.profilePic || localStorage.getItem('profilePic') || `https://ui-avatars.com/api/?name=${encodeURIComponent(myId || 'Me')}&background=random`;
+          const myProfilePic = myMoment?.user.profilePic || user?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(myId || 'Me')}&background=random`;
           
           return (
             <div className="moment-item" onClick={() => onMomentClick('me')}>
@@ -38,7 +40,7 @@ const MomentBar: React.FC<MomentBarProps> = ({ moments, onMomentClick }) => {
         })()}
 
         {/* Following users' moments (excluding self) */}
-        {moments.filter(m => m.user.userid !== localStorage.getItem('userid')).map((item) => (
+        {moments.filter(m => m.user.userid !== user?.userid).map((item) => (
           <div key={item.user._id} className="moment-item" onClick={() => onMomentClick(item.user._id)}>
             <div className="saturn-ring-container">
               <div className="saturn-ring"></div>

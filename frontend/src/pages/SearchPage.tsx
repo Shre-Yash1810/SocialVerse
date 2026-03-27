@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Hand, Check } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import '../styles/Feed.css';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [locationPerm, setLocationPerm] = useState(localStorage.getItem('nearby_location_granted') === 'true');
   
-  const [myFollowing, setMyFollowing] = useState<string[]>([]);
+  const [myFollowing, setMyFollowing] = useState<string[]>(user?.following || []);
   const [wavedAt, setWavedAt] = useState<string[]>([]);
-  const currentUserId = localStorage.getItem('userid');
+  const currentUserId = user?.userid;
 
   useEffect(() => {
     const checkAndFetchNearby = async () => {
@@ -51,17 +53,11 @@ const SearchPage: React.FC = () => {
       }
     };
 
-    api.get('/users/me')
-      .then(res => {
-        const followingIds = res.data.following?.map((f: any) => typeof f === 'object' ? f._id : f) || [];
-        setMyFollowing(followingIds);
-        
-        if (res.data.isDiscoveryEnabled !== undefined) {
-           // We only fetch if location was previously granted
-           checkAndFetchNearby();
-        }
-      })
-      .catch(err => console.error(err));
+    if (user) {
+      if (user.isDiscoveryEnabled !== undefined) {
+        checkAndFetchNearby();
+      }
+    }
   }, []);
 
   const fetchNearby = async (lng: number, lat: number) => {

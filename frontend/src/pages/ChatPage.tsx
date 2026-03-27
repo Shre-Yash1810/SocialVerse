@@ -10,6 +10,7 @@ import GroupInfoModal from '../components/GroupInfoModal';
 import PostDetailModal from '../components/PostDetailModal';
 import BlogDetailModal from '../components/BlogDetailModal';
 import { formatRelativeTime } from '../utils/timeUtils';
+import { useUser } from '../context/UserContext';
 
 interface SharedPost {
   _id: string;
@@ -50,11 +51,11 @@ interface Message {
 const ChatPage: React.FC = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [chat, setChat] = useState<Chat | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
   const [activeSharedContent, setActiveSharedContent] = useState<any | null>(null);
   const [longPressTimer, setLongPressTimer] = useState<any>(null);
@@ -85,18 +86,17 @@ const ChatPage: React.FC = () => {
     socketRef.current = socket;
 
     const loadChat = async () => {
+      if (!user?._id) return;
       try {
-        const [chatRes, msgRes, userRes] = await Promise.all([
+        const [chatRes, msgRes] = await Promise.all([
           api.get(`/chats/${chatId}`),
-          api.get(`/chats/${chatId}/messages`),
-          api.get('/users/me')
+          api.get(`/chats/${chatId}/messages`)
         ]);
         if (isMounted) {
           setChat(chatRes.data);
           setMessages(msgRes.data);
-          setCurrentUser(userRes.data);
           setLoading(false);
-          socket.emit('register', userRes.data._id);
+          socket.emit('register', user._id);
         }
       } catch (error) {
         console.error('Error loading space chat:', error);
@@ -189,7 +189,7 @@ const ChatPage: React.FC = () => {
     );
   }
 
-  const otherParticipant = chat?.participants?.find((p: any) => p._id !== currentUser?._id) || null;
+  const otherParticipant = chat?.participants?.find((p: any) => p._id !== user?._id) || null;
   const chatName = chat?.isGroup ? chat.name : (otherParticipant?.name || otherParticipant?.userid || 'Unknown User');
   const chatAvatar = (chat?.isGroup ? '' : otherParticipant?.profilePic) || '';
 
@@ -229,7 +229,7 @@ const ChatPage: React.FC = () => {
           initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
           style={{ flex: 1, padding: '20px' }}
           itemContent={(_, msg) => {
-            const isMe = String(msg.sender?._id || msg.sender) === String(currentUser?._id);
+            const isMe = String(msg.sender?._id || msg.sender) === String(user?._id);
             return (
               <MessageBubble
                 key={msg._id}
@@ -271,7 +271,7 @@ const ChatPage: React.FC = () => {
         </form>
       </footer>
 
-      {isGroupInfoOpen && chat && <GroupInfoModal chat={chat} onClose={() => setIsGroupInfoOpen(false)} currentUser={currentUser} onUpdate={async () => { const res = await api.get(`/chats/${chatId}`); setChat(res.data); }} />}
+      {isGroupInfoOpen && chat && <GroupInfoModal chat={chat} onClose={() => setIsGroupInfoOpen(false)} currentUser={user} onUpdate={async () => { const res = await api.get(`/chats/${chatId}`); setChat(res.data); }} />}
       {activeSharedContent && (activeSharedContent.type === 'Blog' ? <BlogDetailModal post={activeSharedContent} onClose={() => setActiveSharedContent(null)} /> : <PostDetailModal post={activeSharedContent} onClose={() => setActiveSharedContent(null)} />)}
 
       <style>{`

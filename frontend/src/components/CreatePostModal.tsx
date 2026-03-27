@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Image as ImageIcon, Video as VideoIcon, FileText, Trash2 } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import '../styles/Auth.css';
 
 interface CreatePostModalProps {
@@ -9,6 +10,7 @@ interface CreatePostModalProps {
 }
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostCreated }) => {
+  const { user } = useUser();
   const [type, setType] = useState<'Image' | 'Video' | 'Blog'>('Image');
   const [content, setContent] = useState('');
   const [caption, setCaption] = useState('');
@@ -206,9 +208,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPostCreate
             <div style={{ padding: '16px', borderTop: '1px solid #efefef' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#eee', overflow: 'hidden' }}>
-                   <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(localStorage.getItem('userid') || 'U')}&background=random`} style={{ width: '100%', height: '100%' }} />
+                   <img src={user?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.userid || 'U')}&background=random`} style={{ width: '100%', height: '100%' }} />
                 </div>
-                <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{localStorage.getItem('userid')}</span>
+                <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{user?.userid}</span>
               </div>
               <textarea 
                 placeholder="Write a caption..."

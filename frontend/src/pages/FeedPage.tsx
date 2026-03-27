@@ -8,6 +8,7 @@ import PostDetailModal from '../components/PostDetailModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { FeedSkeleton } from '../components/Skeletons';
 import Linkify from '../components/Linkify';
+import { useUser } from '../context/UserContext';
 import '../styles/Feed.css';
 
 interface Post {
@@ -67,7 +68,7 @@ const FeedVideo: React.FC<{ src: string }> = ({ src }) => {
 
 const FeedPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(localStorage.getItem('db_id'));
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
@@ -75,22 +76,15 @@ const FeedPage: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchFeed = async () => {
+    if (!user?._id) return;
     try {
-      let myId = currentId;
-      if (!myId) {
-        const userRes = await api.get('/users/me');
-        myId = userRes.data._id;
-        localStorage.setItem('db_id', myId!);
-        setCurrentId(myId);
-      }
-
       const res = await api.get('/posts/feed');
       const feedData = res.data
         .filter((post: any) => post.type !== 'Blog')
         .map((post: any) => ({
         ...post,
-        isLiked: post.likes?.some((id: any) => id.toString() === myId),
-        isSaved: post.savedBy?.some((id: any) => id.toString() === myId)
+        isLiked: post.likes?.some((id: any) => id.toString() === user._id),
+        isSaved: post.savedBy?.some((id: any) => id.toString() === user._id)
       }));
       setPosts(feedData);
     } catch (err) {
@@ -101,8 +95,8 @@ const FeedPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFeed();
-  }, [currentId]);
+    if (user?._id) fetchFeed();
+  }, [user?._id]);
 
   const handleLike = async (id: string) => {
     try {

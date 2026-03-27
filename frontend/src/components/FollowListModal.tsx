@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 
 interface FollowListModalProps {
   userHandle: string;
@@ -10,12 +11,12 @@ interface FollowListModalProps {
 }
 
 const FollowListModal: React.FC<FollowListModalProps> = ({ userHandle, type, onClose }) => {
+  const { user } = useUser();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const currentUserId = localStorage.getItem('userid');
-  const [myFollowing, setMyFollowing] = useState<string[]>([]);
-
+  const currentUserId = user?.userid;
+  const [myFollowing, setMyFollowing] = useState<string[]>(user?.following || []);
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -29,20 +30,7 @@ const FollowListModal: React.FC<FollowListModalProps> = ({ userHandle, type, onC
       }
     };
     
-    // Also fetch my own profile to know whom I follow for the toggle buttons
-    const fetchMe = async () => {
-      try {
-        const res = await api.get('/users/me');
-        // Check if populated following or just IDs
-        const followingIds = res.data.following?.map((f: any) => typeof f === 'object' ? f._id : f) || [];
-        setMyFollowing(followingIds);
-      } catch (err) {
-        console.error('Failed to fetch my following list', err);
-      }
-    };
-
     fetchUsers();
-    fetchMe();
   }, [userHandle, type]);
 
   const handleToggleFollow = async (e: React.MouseEvent, targetUser: any) => {

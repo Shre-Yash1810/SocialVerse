@@ -5,6 +5,7 @@ import PageTransition from './components/PageTransition';
 import './styles/Modals.css';
 import MainLayout from './components/MainLayout';
 import { ByteProvider } from './context/ByteContext';
+import { UserProvider } from './context/UserContext';
 import './index.css';
 
 // Lazy load pages
@@ -59,11 +60,13 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <ByteProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AnimatedRoutes />
-      </Router>
-    </ByteProvider>
+    <UserProvider>
+      <ByteProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AnimatedRoutes />
+        </Router>
+      </ByteProvider>
+    </UserProvider>
   );
 }
 

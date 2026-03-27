@@ -4,6 +4,7 @@ import { Search, Users, MessageSquare, ChevronRight, MoreVertical } from 'lucide
 import MomentBar from '../components/MomentBar';
 import api from '../services/api';
 import { ChatListSkeleton } from '../components/ChatSkeletons';
+import { useUser } from '../context/UserContext';
 
 import CreateGroupModal from '../components/CreateGroupModal';
 import CreateMomentModal from '../components/CreateMomentModal';
@@ -11,6 +12,7 @@ import MomentViewerModal from '../components/MomentViewerModal';
 
 const VerseChat: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'single' | 'group'>('single');
   const [moments, setMoments] = useState<any[]>([]);
@@ -47,8 +49,8 @@ const VerseChat: React.FC = () => {
   });
 
   const handleMomentClick = (userId: string) => {
-    const myId = localStorage.getItem('userid')?.toLowerCase();
-    const myDbId = localStorage.getItem('db_id');
+    const myId = user?.userid?.toLowerCase();
+    const myDbId = user?._id;
     
     if (userId === 'me') {
       const myIdx = moments.findIndex((m: any) => 
@@ -204,7 +206,7 @@ const VerseChat: React.FC = () => {
             >
               <div style={{ position: 'relative' }}>
                 <img 
-                  src={chat.isGroup ? (chat.groupPic || 'https://ui-avatars.com/api/?name=Group&background=cbd5e1') : (chat.participants.find((p: any) => p.userid !== localStorage.getItem('userid'))?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.participants.find((p: any) => p.userid !== localStorage.getItem('userid'))?.userid || 'User')}&background=random`)}
+                  src={chat.isGroup ? (chat.groupPic || 'https://ui-avatars.com/api/?name=Group&background=cbd5e1') : (chat.participants.find((p: any) => p.userid !== user?.userid)?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.participants.find((p: any) => p.userid !== user?.userid)?.userid || 'User')}&background=random`)}
                   alt="Avatar"
                   style={{ width: '56px', height: '56px', borderRadius: '18px', objectFit: 'cover' }}
                 />
@@ -214,7 +216,7 @@ const VerseChat: React.FC = () => {
               <div style={{ flex: 1, borderBottom: '1px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b' }}>
-                    {chat.isGroup ? chat.name : chat.participants.find((p: any) => p.userid !== localStorage.getItem('userid'))?.userid}
+                    {chat.isGroup ? chat.name : chat.participants.find((p: any) => p.userid !== user?.userid)?.userid}
                   </h3>
                   <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     {chat.lastMessage ? new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}

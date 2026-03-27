@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import BlogDetailModal from '../components/BlogDetailModal';
+import { useUser } from '../context/UserContext';
 import '../styles/Feed.css';
 
 interface Blog {
@@ -14,20 +15,13 @@ interface Blog {
 
 const BlogsPage: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(localStorage.getItem('db_id'));
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [activeDetailBlog, setActiveDetailBlog] = useState<any | null>(null);
 
   const fetchBlogs = async () => {
+    if (!user?._id) return;
     try {
-      let myId = currentId;
-      if (!myId) {
-        const userRes = await api.get('/users/me');
-        myId = userRes.data._id;
-        localStorage.setItem('db_id', myId!);
-        setCurrentId(myId);
-      }
-
       const res = await api.get('/posts/feed');
       const blogData = res.data.filter((post: any) => post.type === 'Blog');
       setBlogs(blogData);
@@ -39,8 +33,8 @@ const BlogsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchBlogs();
-  }, [currentId]);
+    if (user?._id) fetchBlogs();
+  }, [user?._id]);
 
   if (loading) return <div className="loading-screen">Reading the verse...</div>;
 

@@ -6,6 +6,7 @@ import ShareModal from '../components/ShareModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { useNavigate } from 'react-router-dom';
 import { useByte } from '../context/ByteContext';
+import { useUser } from '../context/UserContext';
 import Linkify from '../components/Linkify';
 import '../styles/Feed.css';
 
@@ -146,28 +147,21 @@ const BytePlayer: React.FC<{
 
 const BytesPage: React.FC = () => {
   const [reels, setReels] = useState<Reel[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(localStorage.getItem('db_id'));
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const fetchReels = async () => {
+    if (!user?._id) return;
     try {
-      let myId = currentId;
-      if (!myId) {
-        const userRes = await api.get('/users/me');
-        myId = userRes.data._id;
-        localStorage.setItem('db_id', myId!);
-        setCurrentId(myId);
-      }
-
       const res = await api.get('/posts/feed');
       const reelsData = res.data
         .filter((post: any) => post.type === 'Video')
         .map((reel: any) => ({
           ...reel,
-          isLiked: reel.likes?.some((id: any) => id.toString() === myId)
+          isLiked: reel.likes?.some((id: any) => id.toString() === user._id)
         }));
       setReels(reelsData);
     } catch (err) {
@@ -178,8 +172,8 @@ const BytesPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchReels();
-  }, [currentId]);
+    if (user?._id) fetchReels();
+  }, [user?._id]);
 
   const toggleLike = async (id: string) => {
     try {
