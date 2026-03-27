@@ -94,6 +94,7 @@ export const getMoments = async (req: Request, res: Response) => {
     // Group moments by user for the "Saturn" circles
     const groupedMoments: any = {};
     moments.forEach((m: any) => {
+      if (!m.user) return; // Skip moments without a valid user
       const uId = m.user._id.toString();
       if (!groupedMoments[uId]) {
         groupedMoments[uId] = {

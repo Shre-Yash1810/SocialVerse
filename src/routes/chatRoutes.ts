@@ -1,5 +1,5 @@
 import express from 'express';
-import { getChats, getChat, getMessages, createChat, unsendMessage, addParticipants, leaveChat, sendMessage, removeParticipant, updateChat, sharePost } from '../controllers/chatController';
+import { getChats, getChat, getMessages, createChat, unsendMessage, addParticipants, leaveChat, sendMessage, removeParticipant, updateChat, sharePost, markMessagesAsRead } from '../controllers/chatController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
@@ -24,5 +24,6 @@ router.get('/test_db', async (req, res) => {
   }
 });
 router.get('/:chatId/leave', protect, leaveChat);
+router.put('/:chatId/read', protect, markMessagesAsRead);
 
 export default router;

@@ -46,7 +46,20 @@ export const getChats = async (req: Request, res: Response) => {
       .sort({ updatedAt: -1 })
       .lean();
 
-    res.json(chats);
+    // Map through chats to add isRead status
+    const formattedChats = chats.map((chat: any) => {
+      let isRead = true;
+      if (chat.lastMessage) {
+        const senderId = chat.lastMessage.sender?._id || chat.lastMessage.sender;
+        // If the last message was NOT sent by me and is NOT read, marks as unread
+        if (senderId && senderId.toString() !== userId.toString()) {
+          isRead = !!chat.lastMessage.isRead;
+        }
+      }
+      return { ...chat, isRead };
+    });
+
+    res.json(formattedChats);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -233,6 +246,18 @@ export const unsendMessage = async (req: Request, res: Response) => {
     // Notify other participants via socket
     const chat = await Chat.findById(message.chat);
     if (chat) {
+      // If this was the last message, update the chat's lastMessage reference
+      if (chat.lastMessage && chat.lastMessage.toString() === messageId) {
+        const newLastMessage = await Message.findOne({ 
+          chat: chat._id, 
+          isDeleted: false 
+        })
+        .sort({ createdAt: -1 });
+
+        chat.lastMessage = newLastMessage ? newLastMessage._id as any : null;
+        await chat.save();
+      }
+
       chat.participants.forEach((participantId: any) => {
         if (participantId.toString() !== (req as any).user._id.toString()) {
           notifyMessageDeleted(participantId.toString(), chat._id.toString(), message._id.toString());
@@ -420,6 +445,41 @@ export const sharePost = async (req: Request, res: Response) => {
     res.status(201).json(results);
   } catch (error) {
     console.error('Share post error:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+export const markMessagesAsRead = async (req: Request, res: Response) => {
+  const { chatId } = req.params;
+  const userId = (req as any).user._id;
+
+  if (isMockMode()) {
+    return res.json({ message: 'Messages marked as read (Mock Mode)' });
+  }
+
+  try {
+    // Update all messages in this chat sent by others to isRead: true
+    await Message.updateMany(
+      { 
+        chat: chatId, 
+        sender: { $ne: userId }, 
+        isRead: false 
+      },
+      { isRead: true }
+    );
+
+    // Also update the lastMessage if it's currently unread so the chat list updates
+    const chat = await Chat.findById(chatId).populate('lastMessage');
+    if (chat && chat.lastMessage) {
+      const lastMsg = chat.lastMessage as any;
+      if (lastMsg.sender.toString() !== userId.toString() && !lastMsg.isRead) {
+        lastMsg.isRead = true;
+        await lastMsg.save();
+      }
+    }
+
+    res.json({ message: 'Messages marked as read' });
+  } catch (error) {
+    console.error('Mark as read error:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 };

@@ -97,6 +97,9 @@ const ChatPage: React.FC = () => {
           setMessages(msgRes.data);
           setLoading(false);
           socket.emit('register', user._id);
+          
+          // Mark messages as read
+          api.put(`/chats/${chatId}/read`).catch(console.error);
         }
       } catch (error) {
         console.error('Error loading space chat:', error);
@@ -109,6 +112,10 @@ const ChatPage: React.FC = () => {
     socket.on('new_message', (message: Message) => {
       setMessages(prev => {
         if (prev.some(m => m._id === message._id)) return prev;
+        
+        // If we are active in this chat, mark the new message as read immediately
+        api.put(`/chats/${chatId}/read`).catch(console.error);
+        
         return [...prev, message];
       });
     });
