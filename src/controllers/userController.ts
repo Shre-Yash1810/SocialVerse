@@ -66,6 +66,7 @@ export const reportUser = async (req: Request, res: Response) => {
   try {
     const report = await Report.create({
       reporter: userId,
+      targetType: 'User',
       target: targetId,
       reason,
     });

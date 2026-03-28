@@ -17,6 +17,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import commentRoutes from './routes/commentRoutes';
 import userRoutes from './routes/userRoutes';
 import momentRoutes from './routes/momentRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -75,6 +76,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/moments', momentRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('SocialVerse API is running...');

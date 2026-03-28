@@ -9,7 +9,7 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'main' | 'privacy' | 'terms' | 'blocked' | 'account' | 'security' | 'about'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'privacy' | 'terms' | 'blocked' | 'account' | 'security' | 'about' | 'admin_rights'>('main');
   
   const [nearbyEnabled, setNearbyEnabled] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -158,6 +158,15 @@ const SettingsPage: React.FC = () => {
             </div>
             <div className="settings-item-right"><ChevronRight size={20} /></div>
           </div>
+          {(user?.role === 'admin' || user?.role === 'founder') && (
+            <div className="settings-item" onClick={() => setActiveView('admin_rights')}>
+              <div className="settings-item-left">
+                <Shield size={20} className="settings-item-icon" style={{ color: '#f59e0b' }} />
+                <span>Admin/Founder's Rights</span>
+              </div>
+              <div className="settings-item-right"><ChevronRight size={20} /></div>
+            </div>
+          )}
         </div>
 
         <button className="logout-btn-page" onClick={handleLogout}>
@@ -362,6 +371,45 @@ const SettingsPage: React.FC = () => {
     </>
   );
 
+  const renderAdminRightsView = () => (
+    <>
+      <div className="settings-page-header">
+        <button className="back-btn" onClick={() => setActiveView('main')}><ChevronLeft size={24} /></button>
+        <h2>Founders & Admin Charter</h2>
+      </div>
+      <div className="settings-page-body legal-page-content">
+        <h3>1. Authority and Governance</h3>
+        <p>As a Founder or Administrator of SocialVerse, you are entrusted with the stewardship of our digital sanctuary. Your authority is derived from your commitment to maintaining a respectful, safe, and flourishing community. Founders hold ultimate decision-making power regarding platform architecture and core policies.</p>
+
+        <h3>2. Moderation & Content Management</h3>
+        <p>Administrators have the right and responsibility to monitor user-generated content for violations of our community standards. This includes the power to remove malicious content, suspend accounts that infringe upon our Terms, and mediate disputes between users with impartiality and fairness.</p>
+
+        <h3>3. Data Privacy & Ethical Access</h3>
+        <p>Founders and Admins must uphold the highest standards of data ethics. Access to administrative tools is granted strictly for platform maintenance and security purposes. Unauthorized access to personal user data or private VerseChat communications is strictly prohibited and constitutes a breach of this charter.</p>
+
+        <h3>4. Community Evolution</h3>
+        <p>Founders possess the right to introduce new features, refine platform aesthetics, and evolve the SocialVerse ecosystem. Admins are encouraged to provide direct feedback from the community to help shape these decisions, ensuring SocialVerse remains a user-centric environment.</p>
+
+        <div style={{ marginTop: '30px', padding: '20px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+          <h4 style={{ margin: '0 0 10px 0', color: '#d97706' }}>Administrative Tools</h4>
+          <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>As an authorized member, you can access the central management console to oversee platform metrics and user accounts.</p>
+          <button 
+            className="action-btn-primary" 
+            style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f59e0b', color: 'white', fontWeight: 600 }}
+            onClick={() => navigate('/admin')}
+          >
+            Open Admin Dashboard
+          </button>
+        </div>
+
+        <div className="legal-footer">
+          SocialVerse Administrative Board<br/>
+          Ratified: March 2026
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="page-wrapper animate-fade-in">
       <main className="settings-container">
@@ -372,6 +420,7 @@ const SettingsPage: React.FC = () => {
         {activeView === 'account' && renderAccountView()}
         {activeView === 'security' && renderSecurityView()}
         {activeView === 'about' && renderAboutView()}
+        {activeView === 'admin_rights' && renderAdminRightsView()}
       </main>
       <BottomNav />
     </div>

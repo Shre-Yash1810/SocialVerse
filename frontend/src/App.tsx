@@ -20,6 +20,7 @@ const SearchPage = lazy(() => import('./pages/SearchPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const VerseChat = lazy(() => import('./pages/VerseChat'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 
 const LoadingScreen = () => (
   <div className="loading-screen" style={{ background: 'var(--bg-main)' }}>
@@ -52,6 +53,9 @@ function AnimatedRoutes() {
             <Route path="/chat/:chatId" element={<PageTransition><ChatPage /></PageTransition>} />
             <Route path="/" element={<Navigate to="/feed" replace />} />
           </Route>
+
+          {/* Dedicated Admin Route (No Main Nav) */}
+          <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
         </Routes>
       </Suspense>
     </AnimatePresence>

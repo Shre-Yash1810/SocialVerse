@@ -39,3 +39,21 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
+
+export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (user && (user.role === 'admin' || user.role === 'founder')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as an admin' });
+  }
+};
+
+export const isFounder = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (user && user.role === 'founder') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as a founder' });
+  }
+};

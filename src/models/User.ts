@@ -24,6 +24,7 @@ export interface IUser extends Document {
     type: 'Point';
     coordinates: [number, number]; // [longitude, latitude]
   };
+  role: 'user' | 'admin' | 'founder';
   lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +55,7 @@ const UserSchema = new Schema<IUser>(
       type: { type: String, enum: ['Point'] },
       coordinates: { type: [Number] },
     },
+    role: { type: String, enum: ['user', 'admin', 'founder'], default: 'user' },
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true }

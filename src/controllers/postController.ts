@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Post from '../models/Post';
 import User from '../models/User';
 import Comment from '../models/Comment';
+import Report from '../models/Report';
 import XPService from '../services/XPService';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
@@ -182,6 +183,27 @@ export const getUserPosts = async (req: Request, res: Response) => {
       .sort({ createdAt: -1 });
 
     res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const reportPost = async (req: Request, res: Response) => {
+  const { postId, reason } = req.body;
+  const userId = (req as any).user._id;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const report = await Report.create({
+      reporter: userId,
+      targetType: 'Post',
+      target: postId,
+      reason,
+    });
+
+    res.status(201).json({ message: 'Post reported successfully', report });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

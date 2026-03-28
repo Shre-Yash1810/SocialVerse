@@ -10,11 +10,12 @@ const MainLayout: React.FC = () => {
   // Determine Navbar mode based on path
   const getNavbarMode = () => {
     if (location.pathname.startsWith('/profile')) return 'profile';
-    if (location.pathname.startsWith('/settings')) return 'none'; // Settings usually has its own header or none
+    if (location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin')) return 'none'; 
     return 'home';
   };
 
   const isChatView = location.pathname.startsWith('/chat/');
+  const isDashboardView = location.pathname.startsWith('/admin') || location.pathname.startsWith('/settings');
   
   return (
     <div className="app-layout">
@@ -22,8 +23,8 @@ const MainLayout: React.FC = () => {
       <main className="main-content">
         <Outlet />
       </main>
-      <BottomNav />
-      <RightSidebar />
+      {!isDashboardView && !isChatView && <BottomNav />}
+      {!isDashboardView && !isChatView && <RightSidebar />}
     </div>
   );
 };
