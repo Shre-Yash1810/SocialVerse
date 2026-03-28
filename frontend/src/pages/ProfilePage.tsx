@@ -150,15 +150,6 @@ const ProfilePage: React.FC = () => {
 
   const isPrivateAndNotFollowing = user?.isPrivate && !isOwnProfile && !isFollowing;
 
-  useEffect(() => {
-    if (user) {
-      console.log('--- DEBUG: SocialVerse User Data ---');
-      console.log('ID:', user._id);
-      console.log('Badges Field:', user.badges);
-      console.log('Selected Badges Field:', user.selectedBadges);
-    }
-  }, [user]);
-
   if (loading) return <ProfileSkeleton />;
 
   return (
@@ -343,11 +334,6 @@ const ProfilePage: React.FC = () => {
                 <ChevronDown size={16} strokeWidth={3} />
               </button>
             </div>
-          )}
-
-          {/* Diagnostic Fallback: Only shows if the database field is literally missing/null */}
-          {user && user.badges === undefined && (
-            <div style={{ width: '4px', height: '4px', background: 'white', borderRadius: '50%', margin: '0 auto 10px', opacity: 0.2 }} title="Debug: Badges array is undefined" />
           )}
 
           <div className="bio-container">
