@@ -1,9 +1,8 @@
 import React from 'react';
 import { 
-  Star, Orbit, Palette, Zap, Sun, CloudRain, 
-  Sparkles, ArrowDownCircle, Moon, Mic, 
-  Magnet, Rocket, Wind, Waves, CircleDot,
-  CheckCircle2, User as UserIcon, Grid, Film, FileText
+  Star, Zap, Sun, 
+  Rocket, CircleDot,
+  User as UserIcon, Grid, Film, FileText
 } from 'lucide-react';
 import '../styles/MockProfile.css';
 
