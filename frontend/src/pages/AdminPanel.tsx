@@ -379,8 +379,9 @@ const AdminPanel: React.FC = () => {
                   <input type="text" placeholder="Search for user nodes..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                 </div>
                 
-                <div className="sub-panel table-scroll-panel" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div className="table-responsive-wrapper">
+                <div className="sub-panel table-scroll-panel" style={{ padding: 0 }}>
+                  {/* Desktop-only Table View */}
+                  <div className="table-responsive-wrapper desktop-only">
                     <table className="hq-table-refined">
                       <thead>
                         <tr>
@@ -419,6 +420,32 @@ const AdminPanel: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Mobile-native Card View */}
+                  <div className="user-cards-stack mobile-only">
+                    {filteredUsers.map(user => (
+                      <div key={user._id} className="user-control-card">
+                        <div className="ucc-header">
+                          <img src={user.profilePic || logo} alt="" className="ucc-img" />
+                          <div className="ucc-info">
+                            <span className="ucc-name">{user.name}</span>
+                            <span className="ucc-handle">@{user.userid}</span>
+                          </div>
+                          <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div className="ucc-footer">
+                          <label>Access Level</label>
+                          <select value={user.role} onChange={(e) => handleUpdateRole(user._id, e.target.value)} className="hq-select-refined" disabled={user._id === currentUser?._id}>
+                            <option value="user">USER</option>
+                            <option value="admin">ADMIN</option>
+                            <option value="founder">FOUNDER</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </motion.div>
