@@ -6,6 +6,7 @@ import './styles/Modals.css';
 import MainLayout from './components/MainLayout';
 import { ByteProvider } from './context/ByteContext';
 import { UserProvider } from './context/UserContext';
+import { NavbarActionProvider } from './context/NavbarActionContext';
 import './index.css';
 
 // Lazy load pages
@@ -70,9 +71,11 @@ function App() {
   return (
     <UserProvider>
       <ByteProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AnimatedRoutes />
-        </Router>
+        <NavbarActionProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AnimatedRoutes />
+          </Router>
+        </NavbarActionProvider>
       </ByteProvider>
     </UserProvider>
   );

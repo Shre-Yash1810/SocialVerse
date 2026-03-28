@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle, ChevronDown, Star
@@ -13,6 +14,7 @@ import MomentViewerModal from '../components/MomentViewerModal';
 import api from '../services/api';
 import { ProfileSkeleton } from '../components/Skeletons';
 import { useUser } from '../context/UserContext';
+import { useNavbarAction } from '../context/NavbarActionContext';
 import AllBadgesModal from '../components/AllBadgesModal';
 import { BADGE_CONFIG } from '../utils/badges';
 import '../styles/Profile.css';
@@ -40,9 +42,25 @@ const ProfilePage: React.FC = () => {
   const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
 
   const { user: currentUser } = useUser();
+  const { setOnMoreClick, setOnCreateClick } = useNavbarAction();
   const currentUserId = currentUser?.userid;
   const targetId = urlHandle || currentUserId;
   const isOwnProfile = !urlHandle || urlHandle === currentUserId;
+
+  useEffect(() => {
+    if (!isOwnProfile) {
+      setOnMoreClick(() => () => setIsProfileOptionsOpen(true));
+      setOnCreateClick(null);
+    } else {
+      setOnMoreClick(null);
+      setOnCreateClick(() => () => setIsCreateOpen(true));
+    }
+    
+    return () => {
+      setOnMoreClick(null);
+      setOnCreateClick(null);
+    }
+  }, [isOwnProfile, setOnMoreClick, setOnCreateClick]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -496,12 +514,13 @@ const ProfilePage: React.FC = () => {
           onClose={() => setFollowListType(null)} 
         />
       )}
-      {isProfileOptionsOpen && (
+      {isProfileOptionsOpen && createPortal(
         <ProfileOptionsModal 
           user={user} 
           onClose={() => setIsProfileOptionsOpen(false)} 
           onBlockSuccess={() => navigate('/feed')}
-        />
+        />,
+        document.body
       )}
       {activeMemory && memories.length > 0 && (
         <MomentViewerModal 
@@ -509,14 +528,15 @@ const ProfilePage: React.FC = () => {
           onClose={() => setActiveMemory(false)}
         />
       )}
-      {isBadgesModalOpen && (
+      {isBadgesModalOpen && createPortal(
         <AllBadgesModal
           earnedBadges={user.badges || []}
           initialSelected={(user.selectedBadges && user.selectedBadges.length > 0) ? user.selectedBadges : (user.badges || []).slice(0, 2)}
           isOwnProfile={isOwnProfile}
           onClose={() => setIsBadgesModalOpen(false)}
           onSave={handleUpdateSelectedBadges}
-        />
+        />,
+        document.body
       )}
     </>
   );

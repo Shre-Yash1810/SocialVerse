@@ -80,13 +80,14 @@
 }
 
 .badges-modal-content {
-  padding: 16px;
+  padding: 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
+  padding-bottom: 40px;
 }
 
 /* Individual Badge Card - Premium Dark Obsidian Style */
@@ -112,6 +113,10 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--badge-color) 15%, transparent), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+.gamified-badge-card {
+  min-width: 0; /* Add to prevent container overflow from children */
 }
 
 .gamified-badge-card:hover {
@@ -181,24 +186,39 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   z-index: 1;
+  min-width: 0; /* Important for text truncation */
 }
 
 .badge-name {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #F8FAFC;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 430px) {
+  .badge-name {
+    font-size: 0.7rem;
+  }
+  .badge-reason {
+    font-size: 0.6rem;
+    line-height: 1.2;
+  }
 }
 
 .badge-reason {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #94A3B8;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .selection-indicator {
@@ -282,8 +302,9 @@
   }
   
   .gamified-badge-card {
-    padding: 16px;
-    gap: 14px;
+    padding: 18px 16px;
+    gap: 16px;
+    border-radius: 20px;
   }
   
   .badge-icon-visual {

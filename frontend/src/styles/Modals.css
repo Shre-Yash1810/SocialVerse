@@ -1,20 +1,19 @@
 /* Global Modal Styles */
 .modal-overlay {
   position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  inset: 0 !important;
   width: 100vw !important;
   height: 100dvh !important;
   background: rgba(0, 0, 0, 0.7) !important;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 9999 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
   margin: 0 !important;
+  pointer-events: auto !important;
 }
 
 .edit-profile-modal, .common-modal {
@@ -81,6 +80,15 @@
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadePure {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-pure {
+  animation: fadePure 0.3s ease-out forwards;
 }
 
 @keyframes scaleUp {

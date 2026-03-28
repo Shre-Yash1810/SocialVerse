@@ -232,9 +232,19 @@
 }
 
 .m-value {
-  font-size: 1.75rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
+}
+
+@media (max-width: 480px) {
+  .m-value {
+    font-size: 1.0rem;
+  }
+  .m-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
+  }
 }
 
 .m-trend {
@@ -250,9 +260,9 @@
 
 .m-subtext {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--hq-text-dim);
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 /* Secondary Dashboard Grid */
@@ -421,7 +431,7 @@
 }
 
 .user-cell-meta .handle {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--hq-text-dim);
 }
 
@@ -598,23 +608,24 @@
 .user-control-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--hq-border);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .ucc-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .ucc-img {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   object-fit: cover;
   border: 1px solid var(--hq-border);
 }
@@ -623,27 +634,34 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .ucc-name {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ucc-handle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--hq-accent);
   font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ucc-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--hq-border);
-  gap: 12px;
+  gap: 8px;
 }
 
 .ucc-footer label {
@@ -673,9 +691,9 @@
   }
   
   .hq-select-refined {
-    min-width: 80px;
-    padding: 4px 8px;
-    font-size: 0.7rem;
+    min-width: 60px;
+    padding: 3px 6px;
+    font-size: 0.65rem;
   }
 }
 
@@ -755,7 +773,21 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 90px;
+    min-width: 80px;
+}
+
+@media (max-width: 480px) {
+    .hq-status-pill {
+        min-width: 70px;
+        padding: 4px 8px;
+        font-size: 0.65rem;
+    }
+    
+    .hq-status-pill.sm {
+        min-width: 65px;
+        padding: 3px 6px;
+        font-size: 0.6rem;
+    }
 }
 
 .hq-status-pill.verified {

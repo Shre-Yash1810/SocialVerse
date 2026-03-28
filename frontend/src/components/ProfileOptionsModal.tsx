@@ -120,7 +120,7 @@ const ProfileOptionsModal: React.FC<ProfileOptionsModalProps> = ({ user, onClose
   );
 
   return (
-    <div className="modal-overlay animate-fade-in" style={{ zIndex: 9999 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="modal-overlay animate-fade-pure" style={{ zIndex: 9999, pointerEvents: 'auto' }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="options-modal-content animate-scale" onClick={e => e.stopPropagation()}>
         {activeView === 'main' && renderMainView()}
         {activeView === 'report' && renderReportView()}
