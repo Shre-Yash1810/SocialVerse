@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, MessageCircle, Share2, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Bookmark, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
@@ -26,6 +27,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
   const [isMuted, setIsMuted] = useState(true);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [lastWheelTime, setLastWheelTime] = useState<number>(0);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartY(e.touches[0].clientY);
@@ -108,7 +110,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
 
   return (
     <div className="modal-overlay animate-fade-in" style={{ zIndex: 1300 }}>
-      <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '4px', border: 'none', color: 'white', cursor: 'pointer', zIndex: 50 }}>
+      <button onClick={onClose} className="desktop-only" style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '4px', border: 'none', color: 'white', cursor: 'pointer', zIndex: 50 }}>
         <X size={28} />
       </button>
 
@@ -125,9 +127,17 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
       )}
 
       <div className="post-detail-modal-content animate-scale">
-        <div className="pd-header mobile-only" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #efefef' }}>
+        <div className="pd-header mobile-only" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #efefef', background: 'white', position: 'relative' }}>
           <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-          <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
+          <span style={{ fontWeight: 610, fontSize: '0.9rem' }}>{localPost.author?.userid || 'Unknown User'}</span>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button onClick={() => setIsOptionsOpen(true)} style={{ background: 'none', border: 'none', color: '#262626', cursor: 'pointer', display: 'flex', padding: '4px' }}>
+              <MoreHorizontal size={22} />
+            </button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#262626', cursor: 'pointer', display: 'flex', padding: '4px' }}>
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Media Section */}
@@ -150,13 +160,16 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
         {/* Info Section */}
         <div className="post-detail-info">
 
-          <div className="pd-header desktop-only" style={{ padding: '16px', borderBottom: '1px solid #efefef', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="pd-header desktop-only" style={{ padding: '16px', borderBottom: '1px solid #efefef', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
             <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
             <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
+            <button onClick={() => setIsOptionsOpen(true)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#262626', cursor: 'pointer', display: 'flex' }}>
+              <MoreHorizontal size={20} />
+            </button>
           </div>
 
-          <div className="mobile-only" style={{ padding: '12px 16px' }}>
-            <div className="post-actions" style={{ padding: '0', marginBottom: '8px', display: 'flex', gap: '16px' }}>
+          <div className="mobile-only" style={{ padding: '4px 16px 12px' }}>
+            <div className="post-actions" style={{ padding: '8px 0', marginBottom: '4px', display: 'flex', gap: '18px' }}>
               <Heart size={26} className={`icon-btn-action ${localPost.isLiked ? 'liked' : ''}`} onClick={handleLike} />
               <MessageCircle size={26} className="icon-btn-action" onClick={() => setShowMobileComments(true)} />
               <Share2 size={26} className="icon-btn-action" onClick={() => setIsShareModalOpen(true)} />
@@ -164,13 +177,15 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                 <Bookmark size={26} className="icon-btn-action" />
               </div>
             </div>
-            <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '4px' }}>{localPost.likes?.length || 0} likes</p>
-            {localPost.caption && (
-              <p style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
-                <strong style={{ marginRight: '6px' }}>{localPost.author?.userid}</strong>
-                <Linkify text={localPost.caption} />
-              </p>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#262626' }}>{localPost.likes?.length || 0} likes</p>
+              {localPost.caption && (
+                <p style={{ fontSize: '0.95rem', lineHeight: '1.4', color: '#262626' }}>
+                  <strong style={{ marginRight: '6px', fontWeight: 700 }}>{localPost.author?.userid}</strong>
+                   <Linkify text={localPost.caption} />
+                </p>
+              )}
+            </div>
             <p onClick={() => setShowMobileComments(true)} style={{ color: '#8e8e8e', fontSize: '0.85rem', marginTop: '6px', cursor: 'pointer' }}>
               View all {comments.length} comments
             </p>
@@ -291,6 +306,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
         <ShareModal
           postId={post._id}
           onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+      {isOptionsOpen && (
+        <ContentOptionsModal
+          contentId={post._id}
+          contentType="post"
+          onClose={() => setIsOptionsOpen(false)}
         />
       )}
     </div>

@@ -351,33 +351,35 @@ input:checked + .slider:before {
 
 /* Options Modal (Smaller) */
 .options-modal-content {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  width: 80%;
-  max-width: 300px;
-  border-radius: 16px;
-  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  width: 90%;
+  max-width: 340px;
+  max-height: 90vh; /* Don't exceed screen height */
+  overflow-y: auto; /* Allow scrolling if form is long */
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
   transform: scale(0.95);
   animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  z-index: 100001;
 }
 
 .option-btn {
   width: 100%;
-  padding: 16px 20px;
+  padding: 18px 24px;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 .option-btn:last-child {
   border-bottom: none;

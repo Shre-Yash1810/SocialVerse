@@ -88,8 +88,15 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const lowerCaseEmailOrUserId = email.toLowerCase();
     const user = await User.findOne({ $or: [{ email: lowerCaseEmailOrUserId }, { userid: lowerCaseEmailOrUserId }] });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
 
-    if (user && user.password && (await bcrypt.compare(password, user.password as string))) {
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Your account has been temporarily banned for violating platform guidelines.' });
+    }
+
+    if (user.password && (await bcrypt.compare(password, user.password as string))) {
       res.json({
         _id: user._id,
         userid: user.userid,

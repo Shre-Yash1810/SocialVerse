@@ -13,6 +13,7 @@ const ProfileOptionsModal: React.FC<ProfileOptionsModalProps> = ({ user, onClose
   const [activeView, setActiveView] = useState<'main' | 'report'>('main');
   const [reportReason, setReportReason] = useState('Spam');
   const [reportDetails, setReportDetails] = useState('');
+  const [screenshot, setScreenshot] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -35,7 +36,8 @@ const ProfileOptionsModal: React.FC<ProfileOptionsModalProps> = ({ user, onClose
     try {
       await api.post('/users/report', { 
         targetId: user._id, 
-        reason: `${reportReason} - ${reportDetails}` 
+        reason: `${reportReason} - ${reportDetails}`,
+        screenshot
       });
       setMessage('Report submitted successfully. We will review this shortly.');
       setTimeout(() => onClose(), 2000);
@@ -106,13 +108,23 @@ const ProfileOptionsModal: React.FC<ProfileOptionsModalProps> = ({ user, onClose
               style={{ marginTop: '8px' }}
             />
           </div>
+          <div style={{ marginTop: '15px' }}>
+            <label>Evidence (Screenshot URL)</label>
+            <input 
+              type="text"
+              placeholder="Paste image link here..."
+              value={screenshot}
+              onChange={e => setScreenshot(e.target.value)}
+              style={{ marginTop: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '10px', width: '100%' }}
+            />
+          </div>
           <button 
             type="submit" 
             className="btn-primary" 
             style={{ width: '100%', padding: '12px', borderRadius: '8px', marginTop: '10px' }}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Sumitting...' : 'Submit Report'}
+            {isSubmitting ? 'Submitting...' : 'Submit Report'}
           </button>
         </form>
       )}

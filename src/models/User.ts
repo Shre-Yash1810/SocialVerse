@@ -29,6 +29,7 @@ export interface IUser extends Document {
   isVerified: boolean;
   totalLikesReceived: number;
   totalCommentsReceived: number;
+  isBanned: boolean;
   lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -64,6 +65,7 @@ const UserSchema = new Schema<IUser>(
     isVerified: { type: Boolean, default: false },
     totalLikesReceived: { type: Number, default: 0 },
     totalCommentsReceived: { type: Number, default: 0 },
+    isBanned: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true }

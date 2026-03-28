@@ -6,6 +6,7 @@ import {
   getStats, 
   updateUserRole,
   toggleUserVerification,
+  toggleUserBan,
   getAllPosts,
   deleteAdminPost,
   getAllReports,
@@ -30,7 +31,9 @@ router.delete('/posts/:id', deleteAdminPost);
 router.get('/reports', getAllReports);
 router.put('/reports/:id', resolveReport);
 
-// Only a founder/admin can toggle verification
+// Only a founder/admin can toggle verification, ban, or role
 router.put('/users/:id/verify', toggleUserVerification);
+router.put('/users/:id/ban', toggleUserBan);
+router.put('/users/:id/role', updateUserRole);
 
 export default router;

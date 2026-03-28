@@ -56,19 +56,20 @@ export const unblockUser = async (req: Request, res: Response) => {
 };
 
 export const reportUser = async (req: Request, res: Response) => {
-  const { targetId, reason } = req.body;
+  const { targetId, reason, targetType, screenshot } = req.body;
   const userId = (req as any).user._id;
 
   if (isMockMode()) {
-    return res.status(201).json({ message: 'User reported (Mock Mode)', targetId, reason });
+    return res.status(201).json({ message: 'Content reported (Mock Mode)', targetId, reason, targetType });
   }
 
   try {
     const report = await Report.create({
       reporter: userId,
-      targetType: 'User',
+      targetType: targetType || 'User',
       target: targetId,
       reason,
+      screenshot
     });
 
     res.status(201).json({ message: 'User reported successfully', report });

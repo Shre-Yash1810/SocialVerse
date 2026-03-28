@@ -177,6 +177,28 @@ export const toggleUserVerification = async (req: Request, res: Response) => {
   }
 };
 
+export const toggleUserBan = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.role === 'founder' && (req as any).user.role !== 'founder') {
+      return res.status(403).json({ message: 'Only a founder can ban another founder' });
+    }
+
+    user.isBanned = !user.isBanned;
+    await user.save();
+
+    res.json({ 
+      message: `User ${user.isBanned ? 'banned' : 'unbanned'} successfully`, 
+      isBanned: user.isBanned 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
@@ -214,9 +236,15 @@ export const getAllReports = async (req: Request, res: Response) => {
     // Manual population for target based on targetType
     const populatedReports = await Promise.all(reports.map(async (report: any) => {
       const reportObj = report.toObject();
-      if (report.targetType === 'User') {
+      const tType = report.targetType?.toLowerCase();
+      
+      if (tType === 'user') {
         reportObj.target = await User.findById(report.target).select('name userid profilePic');
-      } else if (report.targetType === 'Post') {
+      } else if (['post', 'blog', 'moment'].includes(tType)) {
+        reportObj.target = await Post.findById(report.target).populate('author', 'userid name');
+      } else if (report.targetType === 'User') { // Legacy support
+        reportObj.target = await User.findById(report.target).select('name userid profilePic');
+      } else if (report.targetType === 'Post') { // Legacy support
         reportObj.target = await Post.findById(report.target).populate('author', 'userid name');
       }
       return reportObj;
@@ -240,6 +268,12 @@ export const resolveReport = async (req: Request, res: Response) => {
 
     report.status = status as 'Resolved' | 'Dismissed';
     await report.save();
+
+    // If Resolved (Action Taken) and target is a post, we might want to hide it or delete it.
+    // For now, if it's Resolved, we mark it as handled. 
+    // If the Admin specifically wants to delete, they can do it from the content tabs,
+    // but here we mark the case as "Concluded with Action".
+
     res.json({ message: `Report ${status.toLowerCase()} successfully`, report });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Eye, Trash2, Star, Loader2 } from 'lucide-react';
+import { X, Eye, Trash2, Star, Loader2, MoreHorizontal } from 'lucide-react';
+import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
 import { useUser } from '../context/UserContext';
 
@@ -24,6 +25,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
   const [progress, setProgress] = useState(0);
   const [showViewers, setShowViewers] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   
   const currentUserId = user?.userid;
   const duration = 5000; // 5 seconds per moment
@@ -136,7 +138,14 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
             <img src={momentGroup.user.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(momentGroup.user.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)' }} alt="" />
             <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{momentGroup.user.userid}</span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}><X size={28} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+            {!isAuthor && (
+              <button onClick={() => setIsOptionsOpen(true)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}>
+                <MoreHorizontal size={24} />
+              </button>
+            )}
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}><X size={28} /></button>
+          </div>
         </div>
 
         {/* Media Container */}
@@ -254,6 +263,13 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
           </div>
         )}
       </div>
+      {isOptionsOpen && (
+        <ContentOptionsModal
+          contentId={currentMoment._id}
+          contentType="moment"
+          onClose={() => setIsOptionsOpen(false)}
+        />
+      )}
     </div>
   );
 };

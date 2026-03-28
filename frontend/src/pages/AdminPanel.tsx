@@ -25,7 +25,8 @@ import {
   Activity,
   Zap,
   Menu,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -113,6 +114,14 @@ const AdminPanel: React.FC = () => {
       const res = await api.put(`/admin/users/${id}/verify`);
       setUsers(prev => prev.map(u => u._id === id ? { ...u, isVerified: res.data.isVerified } : u));
     } catch (err) { console.error('Verification toggle failed', err); }
+  };
+
+  const handleToggleBan = async (id: string) => {
+    if (!window.confirm('Toggle ban status for this user? Banned users cannot log in.')) return;
+    try {
+      const res = await api.put(`/admin/users/${id}/ban`);
+      setUsers(prev => prev.map(u => u._id === id ? { ...u, isBanned: res.data.isBanned } : u));
+    } catch (err) { console.error('Ban toggle failed', err); }
   };
 
   const handleDeleteUser = async (id: string) => {
@@ -437,9 +446,19 @@ const AdminPanel: React.FC = () => {
                               </select>
                             </td>
                             <td>
-                              <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'} title="Terminate Node">
-                                <Trash2 size={16} />
-                              </button>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button 
+                                  className={`action-btn-${user.isBanned ? 'green' : 'red'}`} 
+                                  onClick={() => handleToggleBan(user._id)} 
+                                  title={user.isBanned ? 'Lift Ban' : 'Suspend Node'}
+                                  style={{ background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: user.isBanned ? '#22c55e' : '#ef4444', border: 'none', padding: '6px', borderRadius: '6px' }}
+                                >
+                                  <ShieldCheck size={16} />
+                                </button>
+                                <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'} title="Terminate Node">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -471,6 +490,13 @@ const AdminPanel: React.FC = () => {
                               onClick={() => handleToggleVerify(user._id)}
                             >
                               {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                            </button>
+                            <button 
+                               className={`action-btn-sm ${user.isBanned ? 'banned' : 'active'}`}
+                               onClick={() => handleToggleBan(user._id)}
+                               style={{ background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: user.isBanned ? '#22c55e' : '#ef4444', border: 'none', padding: '4px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                               <ShieldCheck size={14} />
                             </button>
                             <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'}>
                               <Trash2 size={14} />
@@ -523,8 +549,8 @@ const AdminPanel: React.FC = () => {
 
             {activeTab === 'reports' && (
               <motion.div key="reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="dashboard-sub-grid stack-on-mobile" style={{ gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-                  <div className="report-stack">
+                <div className="report-hub-grid">
+                  <div className="report-stack h-profile">
                     <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <Users size={18} color="#6366f1" /> Profile Safety
                     </h3>
@@ -532,10 +558,26 @@ const AdminPanel: React.FC = () => {
                       <div key={r._id} className="report-card-premium">
                         <div className="rc-indicator" style={{ background: '#6366f1' }}></div>
                         <div className="rc-content">
-                          <span className="rc-target" style={{ fontWeight: 600 }}>@{r.target?.userid || 'Target Node'}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="rc-target" style={{ fontWeight: 600 }}>@{r.target?.userid || 'Target Node'}</span>
+                            <button 
+                              onClick={() => window.open(`/profile/${r.target?.userid}`, '_blank')}
+                              style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}
+                            >
+                              <Eye size={14} /> Investigate
+                            </button>
+                            {r.screenshot && (
+                              <button 
+                                onClick={() => window.open(r.screenshot, '_blank')}
+                                style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                <ArrowUpRight size={10} /> Proof Attached
+                              </button>
+                            )}
+                          </div>
                           <p style={{ fontSize: '0.8rem', marginTop: '6px', color: '#a1a1aa' }}>{r.reason}</p>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="action-btns" style={{ display: 'flex', gap: '8px' }}>
                           <button onClick={() => handleResolveReport(r._id, 'Resolved')} className="action-btn-red" style={{ background: '#22c55e', color: '#fff', width: 'auto', padding: '0 12px', borderColor: '#22c55e' }}>Clear</button>
                           <button onClick={() => handleResolveReport(r._id, 'Dismissed')} className="action-btn-red" style={{ background: 'transparent', color: '#71717a', width: 'auto', padding: '0 12px', borderColor: '#27272a' }}>Ignore</button>
                         </div>
@@ -547,15 +589,106 @@ const AdminPanel: React.FC = () => {
                     <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <ImageIcon size={18} color="#ef4444" /> Media Integrity
                     </h3>
-                    {reports.filter(r => r.targetType === 'Post' && r.status === 'Pending').map(r => (
+                    {reports.filter(r => (['post', 'blog', 'moment'].includes(r.targetType?.toLowerCase()) || r.targetType === 'Post') && r.status === 'Pending').map(r => (
                       <div key={r._id} className="report-card-premium">
                         <div className="rc-indicator" style={{ background: '#ef4444' }}></div>
                         <div className="rc-content">
-                          <span className="rc-target">Content ID: {r.target?._id?.substring(0, 10)}</span>
-                          <p style={{ fontSize: '0.8rem', marginTop: '6px', color: '#a1a1aa' }}>{r.reason}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span className="rc-badge" style={{ fontSize: '10px', padding: '2px 6px' }}>{r.targetType}</span>
+                            <span className="rc-target">@{r.target?.author?.userid || 'Unknown'}</span>
+                            <button 
+                              onClick={() => window.open(`/profile/${r.target?.author?.userid}`, '_blank')}
+                              style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}
+                            >
+                              <Eye size={14} /> Investigate
+                            </button>
+                            {r.screenshot && (
+                              <button 
+                                onClick={() => window.open(r.screenshot, '_blank')}
+                                style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                <ArrowUpRight size={10} /> Proof Attached
+                              </button>
+                            )}
+                          </div>
+                          <p style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>{r.reason}</p>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="action-btns" style={{ display: 'flex', gap: '8px' }}>
                           <button onClick={() => handleResolveReport(r._id, 'Resolved')} className="action-btn-red" style={{ background: '#22c55e', color: '#fff', width: 'auto', padding: '0 12px', borderColor: '#22c55e' }}>Clear</button>
+                          <button onClick={() => handleResolveReport(r._id, 'Dismissed')} className="action-btn-red" style={{ background: 'transparent', color: '#71717a', width: 'auto', padding: '0 12px', borderColor: '#27272a' }}>Ignore</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="sub-panel" style={{ marginTop: '32px' }}>
+                  <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Activity size={18} color="#a1a1aa" /> Resolved Case Files (History)
+                  </h3>
+                  <div className="hq-table-refined-wrapper desktop-only">
+                    <table className="hq-table-refined" style={{ fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr>
+                          <th>Target</th>
+                          <th>Type</th>
+                          <th>Reason</th>
+                          <th>Conclusion</th>
+                          <th>Timestamp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reports.filter(r => r.status !== 'Pending').slice(0, 10).map(r => (
+                          <tr key={r._id}>
+                            <td>@{r.target?.userid || r.target?.author?.userid || 'Node'}</td>
+                            <td>{r.targetType}</td>
+                            <td title={r.reason}>
+                              {r.reason?.substring(0, 30)}...
+                              {r.screenshot && (
+                                <button 
+                                  onClick={() => window.open(r.screenshot, '_blank')}
+                                  style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', marginLeft: '8px' }}
+                                >
+                                  <ArrowUpRight size={12} />
+                                </button>
+                              )}
+                            </td>
+                            <td>
+                              <span className={`hq-status-pill sm ${r.status === 'Resolved' ? 'verified' : 'unverified'}`} style={{ fontSize: '10px' }}>
+                                {r.status === 'Resolved' ? 'CLEARED' : 'IGNORED'}
+                              </span>
+                            </td>
+                            <td style={{ color: '#71717a' }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile-only History Cards */}
+                  <div className="history-cards-stack mobile-only">
+                    {reports.filter(r => r.status !== 'Pending').slice(0, 10).map(r => (
+                      <div key={r._id} className="history-card">
+                        <div className="hc-header">
+                          <span className="hc-target">@{r.target?.userid || r.target?.author?.userid || 'Node'}</span>
+                          <span className={`hq-status-pill sm ${r.status === 'Resolved' ? 'verified' : 'unverified'}`} style={{ fontSize: '10px' }}>
+                            {r.status === 'Resolved' ? 'CLEARED' : 'IGNORED'}
+                          </span>
+                        </div>
+                        <div className="hc-body">
+                          <div className="hc-meta">
+                            <span className="hc-badge">{r.targetType}</span>
+                            <span className="hc-date">{new Date(r.createdAt).toLocaleDateString()}</span>
+                            {r.screenshot && (
+                              <button 
+                                onClick={() => window.open(r.screenshot, '_blank')}
+                                style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                <ArrowUpRight size={10} /> Proof
+                              </button>
+                            )}
+                          </div>
+                          <p className="hc-reason">{r.reason}</p>
                         </div>
                       </div>
                     ))}

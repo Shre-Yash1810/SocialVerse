@@ -189,21 +189,19 @@ export const getUserPosts = async (req: Request, res: Response) => {
 };
 
 export const reportPost = async (req: Request, res: Response) => {
-  const { postId, reason } = req.body;
+  const { targetId, reason, targetType, screenshot } = req.body;
   const userId = (req as any).user._id;
 
   try {
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
     const report = await Report.create({
       reporter: userId,
-      targetType: 'Post',
-      target: postId,
+      targetType: targetType || 'Post',
+      target: targetId,
       reason,
+      screenshot
     });
 
-    res.status(201).json({ message: 'Post reported successfully', report });
+    res.status(201).json({ message: 'Content reported successfully', report });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Heart, MessageCircle, Share2 } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
+import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
@@ -16,6 +17,7 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
   const [localPost, setLocalPost] = useState(post);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   const handleLike = async () => {
     try {
@@ -72,7 +74,10 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
           </div>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+          <button onClick={() => setIsOptionsOpen(true)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}>
+            <MoreHorizontal size={22} color="#fff" />
+          </button>
           <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}>
             <X size={24} color="#fff" />
           </button>
@@ -163,6 +168,14 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
           onClose={() => setIsShareModalOpen(false)} 
         />
         </div>
+      )}
+
+      {isOptionsOpen && (
+        <ContentOptionsModal
+          contentId={post._id}
+          contentType="blog"
+          onClose={() => setIsOptionsOpen(false)}
+        />
       )}
     </div>
   );
