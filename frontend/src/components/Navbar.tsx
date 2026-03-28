@@ -39,7 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ mode = 'home', onCreateClick, onSetting
             <button className="icon-btn" title="Create Post" onClick={onCreateClick}>
               <PlusSquare size={22} />
             </button>
-            <button className="icon-btn" title="Settings" onClick={onSettingsClick}>
+            <button className="icon-btn" title="Settings" onClick={() => onSettingsClick ? onSettingsClick() : navigate('/settings')}>
               <Settings size={22} />
             </button>
           </>
