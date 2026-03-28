@@ -20,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ mode = 'home', onCreateClick, onSetting
         <img 
           src={logo} 
           alt="SocialVerse" 
-          style={{ height: '28px', cursor: 'pointer' }} 
+          className="app-nav-logo"
           onClick={() => navigate('/feed')} 
         />
       </div>
