@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle
+  User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle, ChevronDown, Star
 } from 'lucide-react';
 import EditProfileModal from '../components/EditProfileModal';
 import CreatePostModal from '../components/CreatePostModal';
@@ -13,25 +13,11 @@ import MomentViewerModal from '../components/MomentViewerModal';
 import api from '../services/api';
 import { ProfileSkeleton } from '../components/Skeletons';
 import { useUser } from '../context/UserContext';
+import AllBadgesModal from '../components/AllBadgesModal';
+import { BADGE_CONFIG } from '../utils/badges';
 import '../styles/Profile.css';
 
-const BADGE_CONFIG: { [key: string]: { color: string } } = {
-  'THE RISING STAR': { color: '#fbbf24' },
-  'THE GROWING ORBIT': { color: '#60a5fa' },
-  'THE GALACTIC CREATOR': { color: '#f472b6' },
-  'THE GREAT ATTRACTOR': { color: '#fb7185' },
-  'THE NEBULA FORGER': { color: '#a78bfa' },
-  'THE SUPERNOVA MOMENT': { color: '#f59e0b' },
-  'THE LORD OF RINGS': { color: '#34d399' },
-  'THE SILVER MOON': { color: '#94a3b8' },
-  'THE SHOOTING STAR': { color: '#38bdf8' },
-  'THE STAR CLUSTER': { color: '#fbbf24' },
-  'THE COSMIC VOICE': { color: '#818cf8' },
-  'THE CELESTIAL MAGNET': { color: '#f87171' },
-  'THE AURORA SIGNAL': { color: '#2dd4bf' },
-  'THE GRAVITY WELL': { color: '#6366f1' },
-  'THE COSMIC VOYAGER': { color: '#fb923c' },
-};
+
 
 const ProfilePage: React.FC = () => {
   const { handle: urlHandle } = useParams<{ handle?: string }>();
@@ -51,6 +37,7 @@ const ProfilePage: React.FC = () => {
   const [showXpBar, setShowXpBar] = useState(false);
   const [memories, setMemories] = useState<any[]>([]);
   const [activeMemory, setActiveMemory] = useState(false);
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
 
   const { user: currentUser } = useUser();
   const currentUserId = currentUser?.userid;
@@ -131,6 +118,16 @@ const ProfilePage: React.FC = () => {
       navigate(`/chat/${res.data._id}`);
     } catch (err) {
       console.error('Failed to start chat', err);
+    }
+  };
+
+  const handleUpdateSelectedBadges = async (selected: string[]) => {
+    try {
+      await api.put('/users/profile', { selectedBadges: selected });
+      setUser({ ...user, selectedBadges: selected });
+      setIsBadgesModalOpen(false);
+    } catch (err) {
+      console.error('Failed to update badges', err);
     }
   };
 
@@ -302,19 +299,40 @@ const ProfilePage: React.FC = () => {
           {/* Minimalist Professional Achievement Badges */}
           {user.badges && user.badges.length > 0 && (
             <div className="achievement-badges-container animate-fade-in">
-              {user.badges.map((badgeName: string) => {
-                const config = BADGE_CONFIG[badgeName] || { color: '#94a3b8' };
-                return (
-                  <div 
-                    className="achievement-badge" 
-                    key={badgeName} 
-                    title={badgeName}
-                    style={{ '--badge-color': config.color } as React.CSSProperties}
-                  >
-                    <span className="achievement-badge-text">{badgeName}</span>
-                  </div>
-                );
-              })}
+              {(() => {
+                const displayBadges = (user.selectedBadges && user.selectedBadges.length > 0) 
+                  ? user.selectedBadges 
+                  : user.badges.slice(0, 2);
+
+                const safeBadges = Array.isArray(displayBadges) ? displayBadges : [];
+                return safeBadges.map((badgeName: string, idx: number) => {
+                  if (!badgeName) return null;
+                  const config = BADGE_CONFIG[badgeName] || { color: '#94a3b8', icon: Star };
+                  const Icon = config.icon || Star;
+                  return (
+                    <div 
+                      className="achievement-badge" 
+                      key={`${badgeName}-${idx}`} 
+                      title={badgeName}
+                      onClick={() => setIsBadgesModalOpen(true)}
+                      style={{ cursor: 'pointer', '--badge-color': config.color || '#94a3b8' } as React.CSSProperties}
+                    >
+                      <div className="achievement-badge-icon">
+                        {typeof Icon === 'function' || typeof Icon === 'object' ? <Icon size={14} strokeWidth={2.5} /> : <Star size={14} strokeWidth={2.5} />}
+                      </div>
+                      <span className="achievement-badge-text">{badgeName}</span>
+                    </div>
+                  );
+                });
+              })()}
+              
+              <button 
+                className="all-badges-trigger"
+                onClick={() => setIsBadgesModalOpen(true)}
+                title="View all achievements"
+              >
+                <ChevronDown size={16} strokeWidth={3} />
+              </button>
             </div>
           )}
 
@@ -489,6 +507,15 @@ const ProfilePage: React.FC = () => {
         <MomentViewerModal 
           momentGroup={{ user, moments: memories }}
           onClose={() => setActiveMemory(false)}
+        />
+      )}
+      {isBadgesModalOpen && (
+        <AllBadgesModal
+          earnedBadges={user.badges || []}
+          initialSelected={(user.selectedBadges && user.selectedBadges.length > 0) ? user.selectedBadges : (user.badges || []).slice(0, 2)}
+          isOwnProfile={isOwnProfile}
+          onClose={() => setIsBadgesModalOpen(false)}
+          onSave={handleUpdateSelectedBadges}
         />
       )}
     </>

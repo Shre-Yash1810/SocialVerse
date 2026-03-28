@@ -1,0 +1,298 @@
+/* Badges.css - High-End Gamified Badges Interface */
+
+.badges-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.badges-modal-container {
+  background: var(--bg-main);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  width: 90%;
+  max-width: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badges-modal-header {
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badges-modal-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badges-modal-title h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.badges-modal-title p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.badge-close-btn {
+  background: var(--bg-secondary);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.badge-close-btn:hover {
+  background: var(--border);
+  color: var(--text-main);
+  transform: rotate(90deg);
+}
+
+.badges-modal-content {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Individual Badge Card - Premium Dark Obsidian Style */
+.gamified-badge-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.gamified-badge-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--badge-color) 15%, transparent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gamified-badge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--badge-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--badge-color) 30%, transparent);
+}
+
+.gamified-badge-card:hover::before {
+  opacity: 1;
+}
+
+.gamified-badge-card.is-selected {
+  background: color-mix(in srgb, var(--badge-color) 20%, transparent);
+  border-color: var(--badge-color);
+  box-shadow: 0 0 0 1px var(--badge-color);
+}
+
+.gamified-badge-card.is-selected .selection-indicator {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Sleek Glowing Circular Medals */
+.badge-icon-visual {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0f172a; /* Deep obsidian dark */
+  border: 2px solid color-mix(in srgb, var(--badge-color) 70%, #1e293b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--badge-color) 40%, transparent),
+              inset 0 0 20px color-mix(in srgb, var(--badge-color) 30%, transparent);
+  z-index: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-icon-visual::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 55%, transparent 60%);
+  transform: rotate(45deg);
+  animation: metallicShimmer 3s infinite linear;
+}
+
+@keyframes metallicShimmer {
+  0% { transform: translate(-30%, -30%) rotate(45deg); }
+  100% { transform: translate(30%, 30%) rotate(45deg); }
+}
+
+.badge-icon-visual svg {
+  color: var(--badge-color);
+  filter: drop-shadow(0 0 6px var(--badge-color));
+  z-index: 2;
+  position: relative;
+}
+
+.badge-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1;
+}
+
+.badge-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.badge-reason {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.selection-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--badge-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--badge-color) 50%, transparent);
+}
+
+.badges-modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.save-badges-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.save-badges-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.save-badges-btn:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Chevron Trigger on Profile */
+.all-badges-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.all-badges-trigger:hover {
+  background: var(--border);
+  transform: translateX(2px);
+}
+
+@media (max-width: 768px) {
+  .badges-modal-container {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .badges-modal-header {
+    padding: 16px 20px;
+  }
+  
+  .gamified-badge-card {
+    padding: 16px;
+    gap: 14px;
+  }
+  
+  .badge-icon-visual {
+    width: 44px;
+    height: 44px;
+  }
+  
+
+  .badges-modal-footer {
+    padding: 16px 20px;
+  }
+}

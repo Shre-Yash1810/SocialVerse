@@ -180,7 +180,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
   const userId = (req as any).user._id;
-  const { name, bio, pronouns, profilePic, isPrivate } = req.body;
+  const { name, bio, pronouns, profilePic, isPrivate, selectedBadges } = req.body;
 
   if (isMockMode()) {
     return res.json({ message: 'Profile updated (Mock Mode)' });
@@ -194,6 +194,12 @@ export const updateProfile = async (req: Request, res: Response) => {
     if (bio !== undefined) user.bio = bio;
     if (pronouns !== undefined) user.pronouns = pronouns;
     if (isPrivate !== undefined) user.isPrivate = isPrivate;
+    if (selectedBadges && Array.isArray(selectedBadges)) {
+      if (selectedBadges.length > 2) {
+        return res.status(400).json({ message: 'Can only select up to 2 badges' });
+      }
+      user.selectedBadges = selectedBadges;
+    }
 
     if (profilePic && profilePic.startsWith('data:image')) {
       const CloudinaryService = require('../services/CloudinaryService').default;

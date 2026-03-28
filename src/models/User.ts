@@ -12,6 +12,7 @@ export interface IUser extends Document {
   xp: number;
   level: number;
   badges: string[];
+  selectedBadges: string[];
   followersCount: number;
   followingCount: number;
   postsCount: number;
@@ -46,6 +47,7 @@ const UserSchema = new Schema<IUser>(
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     badges: [{ type: String }],
+    selectedBadges: [{ type: String }],
     followersCount: { type: Number, default: 0 },
     followingCount: { type: Number, default: 0 },
     postsCount: { type: Number, default: 0 },

@@ -16,18 +16,35 @@ const seedAmbassador = async () => {
     
     // Check if exists
     const existing = await User.findOne({ userid: handle });
+    
+    // Hash password 'socialverse123'
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('socialverse123', salt);
+
     if (existing) {
       console.log('Ambassador already exists. Updating...');
       existing.isVerified = true;
       existing.name = 'Astra Voyager';
+      existing.password = hashedPassword;
       existing.level = 22;
       existing.xp = 5800000;
       existing.bio = 'Pioneer of the SocialVerse 🌌 | Digital Alchemist | Chasing the Great Attractor.';
       existing.badges = [
         'THE RISING STAR',
+        'THE GROWING ORBIT',
+        'THE GALACTIC CREATOR',
         'THE GREAT ATTRACTOR',
+        'THE NEBULA FORGER',
         'THE SUPERNOVA MOMENT',
         'THE LORD OF RINGS',
+        'THE SILVER MOON',
+        'THE SHOOTING STAR',
+        'THE STAR CLUSTER',
+        'THE COSMIC VOICE',
+        'THE CELESTIAL MAGNET',
+        'THE AURORA SIGNAL',
+        'THE GRAVITY WELL',
         'THE COSMIC VOYAGER'
       ];
       await existing.save();

@@ -11,6 +11,19 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="error-overlay" style="position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:999999;font-family:monospace;white-space:pre-wrap;padding:20px;display:none;"></div>
+    <script>
+      window.addEventListener('error', function(e) {
+        var el = document.getElementById('error-overlay');
+        el.style.display = 'block';
+        el.innerHTML += e.error ? e.error.stack : e.message;
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        var el = document.getElementById('error-overlay');
+        el.style.display = 'block';
+        el.innerHTML += e.reason ? e.reason.stack : e.reason;
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
