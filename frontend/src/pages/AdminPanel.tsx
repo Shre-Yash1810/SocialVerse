@@ -108,6 +108,13 @@ const AdminPanel: React.FC = () => {
     } catch (err) { console.error('Role update failed', err); }
   };
 
+  const handleToggleVerify = async (id: string) => {
+    try {
+      const res = await api.put(`/admin/users/${id}/verify`);
+      setUsers(prev => prev.map(u => u._id === id ? { ...u, isVerified: res.data.isVerified } : u));
+    } catch (err) { console.error('Verification toggle failed', err); }
+  };
+
   const handleDeleteUser = async (id: string) => {
     if (!window.confirm('Delete this user? This action cannot be undone.')) return;
     try {
@@ -387,6 +394,7 @@ const AdminPanel: React.FC = () => {
                         <tr>
                           <th>Node Profile</th>
                           <th>Identifier</th>
+                          <th>Status</th>
                           <th>Privilege Level</th>
                           <th>Executive Actions</th>
                         </tr>
@@ -398,12 +406,29 @@ const AdminPanel: React.FC = () => {
                               <div className="user-cell-wrap">
                                 <img src={user.profilePic || logo} alt="" />
                                 <div className="user-cell-meta">
-                                  <span style={{ fontWeight: 600 }}>{user.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontWeight: 600 }}>{user.name}</span>
+                                    {user.isVerified && (
+                                      <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
+                                        <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
+                                        <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                                      </svg>
+                                    )}
+                                  </div>
                                   <span className="handle">joined platforms</span>
                                 </div>
                               </div>
                             </td>
                             <td style={{ fontFamily: 'monospace', color: 'var(--hq-accent)', fontSize: '0.9rem' }}>@{user.userid}</td>
+                            <td>
+                              <button 
+                                className={`hq-status-pill ${user.isVerified ? 'verified' : 'unverified'}`}
+                                onClick={() => handleToggleVerify(user._id)}
+                                title={user.isVerified ? 'Click to unverify' : 'Click to verify'}
+                              >
+                                {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                              </button>
+                            </td>
                             <td>
                               <select value={user.role} onChange={(e) => handleUpdateRole(user._id, e.target.value)} className="hq-select-refined" disabled={user._id === currentUser?._id}>
                                 <option value="user">USER</option>
@@ -429,12 +454,28 @@ const AdminPanel: React.FC = () => {
                         <div className="ucc-header">
                           <img src={user.profilePic || logo} alt="" className="ucc-img" />
                           <div className="ucc-info">
-                            <span className="ucc-name">{user.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span className="ucc-name">{user.name}</span>
+                              {user.isVerified && (
+                                <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
+                                  <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
+                                  <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </div>
                             <span className="ucc-handle">@{user.userid}</span>
                           </div>
-                          <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'}>
-                            <Trash2 size={14} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              className={`hq-status-pill sm ${user.isVerified ? 'verified' : 'unverified'}`}
+                              onClick={() => handleToggleVerify(user._id)}
+                            >
+                              {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                            </button>
+                            <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                         <div className="ucc-footer">
                           <label>Access Level</label>

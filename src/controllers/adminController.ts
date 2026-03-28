@@ -159,6 +159,25 @@ export const updateUserRole = async (req: Request, res: Response) => {
   }
 };
 
+export const toggleUserVerification = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isVerified = !user.isVerified;
+    await user.save();
+
+    res.json({ 
+      message: `User ${user.isVerified ? 'verified' : 'unverified'} successfully`, 
+      isVerified: user.isVerified 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
     const posts = await Post.find()

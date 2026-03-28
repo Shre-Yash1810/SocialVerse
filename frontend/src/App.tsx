@@ -21,6 +21,7 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const VerseChat = lazy(() => import('./pages/VerseChat'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const MockProfile = lazy(() => import('./pages/MockProfile'));
 
 const LoadingScreen = () => (
   <div className="loading-screen" style={{ background: 'var(--bg-main)' }}>
@@ -56,6 +57,9 @@ function AnimatedRoutes() {
 
           {/* Dedicated Admin Route (No Main Nav) */}
           <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
+          
+          {/* Mock Preview Route */}
+          <Route path="/mock-profile" element={<PageTransition><MockProfile /></PageTransition>} />
         </Routes>
       </Suspense>
     </AnimatePresence>

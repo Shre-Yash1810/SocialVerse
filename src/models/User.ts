@@ -25,6 +25,9 @@ export interface IUser extends Document {
     coordinates: [number, number]; // [longitude, latitude]
   };
   role: 'user' | 'admin' | 'founder';
+  isVerified: boolean;
+  totalLikesReceived: number;
+  totalCommentsReceived: number;
   lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -56,6 +59,9 @@ const UserSchema = new Schema<IUser>(
       coordinates: { type: [Number] },
     },
     role: { type: String, enum: ['user', 'admin', 'founder'], default: 'user' },
+    isVerified: { type: Boolean, default: false },
+    totalLikesReceived: { type: Number, default: 0 },
+    totalCommentsReceived: { type: Number, default: 0 },
     lastSeen: { type: Date, default: Date.now },
   },
   { timestamps: true }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle } from 'lucide-react';
+import { 
+  User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle
+} from 'lucide-react';
 import EditProfileModal from '../components/EditProfileModal';
 import CreatePostModal from '../components/CreatePostModal';
 import PostDetailModal from '../components/PostDetailModal';
@@ -12,6 +14,24 @@ import api from '../services/api';
 import { ProfileSkeleton } from '../components/Skeletons';
 import { useUser } from '../context/UserContext';
 import '../styles/Profile.css';
+
+const BADGE_CONFIG: { [key: string]: { color: string } } = {
+  'THE RISING STAR': { color: '#fbbf24' },
+  'THE GROWING ORBIT': { color: '#60a5fa' },
+  'THE GALACTIC CREATOR': { color: '#f472b6' },
+  'THE GREAT ATTRACTOR': { color: '#fb7185' },
+  'THE NEBULA FORGER': { color: '#a78bfa' },
+  'THE SUPERNOVA MOMENT': { color: '#f59e0b' },
+  'THE LORD OF RINGS': { color: '#34d399' },
+  'THE SILVER MOON': { color: '#94a3b8' },
+  'THE SHOOTING STAR': { color: '#38bdf8' },
+  'THE STAR CLUSTER': { color: '#fbbf24' },
+  'THE COSMIC VOICE': { color: '#818cf8' },
+  'THE CELESTIAL MAGNET': { color: '#f87171' },
+  'THE AURORA SIGNAL': { color: '#2dd4bf' },
+  'THE GRAVITY WELL': { color: '#6366f1' },
+  'THE COSMIC VOYAGER': { color: '#fb923c' },
+};
 
 const ProfilePage: React.FC = () => {
   const { handle: urlHandle } = useParams<{ handle?: string }>();
@@ -196,14 +216,37 @@ const ProfilePage: React.FC = () => {
         <section className="profile-identity">
           <div className="name-badge-row">
             <div 
-              className="level-badge" 
+              className="level-badge-celestial" 
               onClick={() => setShowXpBar(!showXpBar)}
-              style={{ cursor: 'pointer', transition: 'transform 0.2s', transform: showXpBar ? 'scale(1.05)' : 'scale(1)' }}
               title="Click to view XP"
             >
               Lv. {user.level || 1}
             </div>
-            <h1 className="display-name">{user.name}</h1>
+            <h1 className="display-name-refined">
+              {user.name}
+              {user.isVerified && (
+                <div className="verified-celestial-wrap">
+                  <svg width="20" height="20" viewBox="0 0 100 100" className="verified-rosette">
+                    <defs>
+                      <radialGradient id="celestialGradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#1e3a8a" />
+                      </radialGradient>
+                      <filter id="glow">
+                        <feGaussianBlur stdDeviation="2.5" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+                    <path 
+                      d="M50 2 L61 14 L77 10 L82 25 L97 28 L92 43 L98 58 L84 68 L80 83 L64 87 L50 98 L36 87 L20 83 L16 68 L2 58 L8 43 L3 28 L18 25 L23 10 L39 14 Z" 
+                      fill="url(#celestialGradient)" 
+                      filter="url(#glow)"
+                    />
+                    <path d="M32 52 L45 65 L72 38" fill="none" stroke="white" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              )}
+            </h1>
           </div>
           
           {showXpBar && (
@@ -255,6 +298,25 @@ const ProfilePage: React.FC = () => {
               </>
             )}
           </div>
+
+          {/* Minimalist Professional Achievement Badges */}
+          {user.badges && user.badges.length > 0 && (
+            <div className="achievement-badges-container animate-fade-in">
+              {user.badges.map((badgeName: string) => {
+                const config = BADGE_CONFIG[badgeName] || { color: '#94a3b8' };
+                return (
+                  <div 
+                    className="achievement-badge" 
+                    key={badgeName} 
+                    title={badgeName}
+                    style={{ '--badge-color': config.color } as React.CSSProperties}
+                  >
+                    <span className="achievement-badge-text">{badgeName}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="bio-container">
             <p className="bio-text">{user.bio}</p>

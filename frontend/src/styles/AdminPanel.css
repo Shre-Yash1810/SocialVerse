@@ -569,8 +569,8 @@
   display: none;
 }
 
-.mobile-only { display: none; }
-.desktop-only { display: flex; }
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
 
 .hq-menu-btn, .hq-close-btn, .hq-back-btn-sm {
   background: none;
@@ -641,8 +641,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: 14px;
   border-top: 1px solid var(--hq-border);
+  gap: 12px;
 }
 
 .ucc-footer label {
@@ -701,11 +702,11 @@
   }
 
   .sidebar-open .hq-sidebar-overlay {
-    display: block;
+    display: block !important;
   }
 
-  .mobile-only { display: flex; }
-  .desktop-only { display: none; }
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
 
   .hq-header {
     padding: 0 20px;
@@ -717,6 +718,11 @@
 
   .dashboard-sub-grid {
     grid-template-columns: 1fr;
+  }
+
+  .search-bar-refined {
+    width: 100% !important;
+    margin-bottom: 24px;
   }
 }
 
@@ -734,4 +740,38 @@
     padding: 12px;
     font-size: 0.75rem;
   }
+}
+
+/* Status Pills */
+.hq-status-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 90px;
+}
+
+.hq-status-pill.verified {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.05);
+}
+
+.hq-status-pill.unverified {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+.hq-status-pill:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
 }

@@ -5,6 +5,7 @@ import {
   deleteUser, 
   getStats, 
   updateUserRole,
+  toggleUserVerification,
   getAllPosts,
   deleteAdminPost,
   getAllReports,
@@ -13,7 +14,7 @@ import {
 
 const router = express.Router();
 
-// All routes here should be protected and only accessible by admins/founders
+// All routes below are protected and only accessible by admins/founders
 router.use(protect);
 router.use(isAdmin);
 
@@ -29,7 +30,7 @@ router.delete('/posts/:id', deleteAdminPost);
 router.get('/reports', getAllReports);
 router.put('/reports/:id', resolveReport);
 
-// Only a founder can update roles
-router.put('/users/:id/role', isFounder, updateUserRole);
+// Only a founder/admin can toggle verification
+router.put('/users/:id/verify', toggleUserVerification);
 
 export default router;

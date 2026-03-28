@@ -29,9 +29,28 @@ export const XP_REWARDS = {
 };
 
 export const BADGES = [
-  { name: 'THE RISING STAR', level: 7 },
-  { name: 'THE GROWING ORBIT', level: 10 },
-  { name: 'THE GALACTIC CREATOR', level: 15 },
-  { name: 'THE GREAT ATTRACTOR', level: 20 },
-  // ... more based on likes/comments/followers from PRD
+  // --- Level Based ---
+  { name: 'THE RISING STAR', type: 'LEVEL', threshold: 7, icon: 'Star' },
+  { name: 'THE GROWING ORBIT', type: 'LEVEL', threshold: 10, icon: 'Orbit' },
+  { name: 'THE GALACTIC CREATOR', type: 'LEVEL', threshold: 15, icon: 'Palette' },
+  { name: 'THE GREAT ATTRACTOR', type: 'LEVEL', threshold: 20, icon: 'Zap' },
+
+  // --- Likes Based ---
+  { name: 'THE NEBULA FORGER', type: 'TOTAL_LIKES', threshold: 10000, icon: 'CloudRain' },
+  { name: 'THE STAR CLUSTER', type: 'TOTAL_LIKES', threshold: 25000, icon: 'Sparkles' },
+  { name: 'THE GRAVITY WELL', type: 'TOTAL_LIKES', threshold: 50000, icon: 'ArrowDownCircle' },
+  { name: 'THE SUPERNOVA MOMENT', type: 'SINGLE_POST_LIKES', threshold: 5000, icon: 'Sun' },
+  { name: 'THE SHOOTING STAR', type: 'VELOCITY_LIKES', threshold: 1000, icon: 'Wind' }, // 1k in 24h
+
+  // --- Followers Based ---
+  { name: 'THE LORD OF RINGS', type: 'FOLLOWERS', threshold: 1000, icon: 'CircleDot' },
+  { name: 'THE CELESTIAL MAGNET', type: 'FOLLOWERS', threshold: 5000, icon: 'Magnet' },
+  { name: 'THE AURORA SIGNAL', type: 'VELOCITY_FOLLOWERS', threshold: 100, icon: 'Waves' }, // 100 in 1d
+
+  // --- Comments Based ---
+  { name: 'THE SILVER MOON', type: 'TOTAL_COMMENTS', threshold: 500, icon: 'Moon' },
+  { name: 'THE COSMIC VOICE', type: 'TOTAL_COMMENTS', threshold: 2000, icon: 'Mic' },
+
+  // --- Time Based ---
+  { name: 'THE COSMIC VOYAGER', type: 'ACCOUNT_AGE', threshold: 365, icon: 'Rocket' }, // 1 year
 ];
