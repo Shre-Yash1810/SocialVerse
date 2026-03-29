@@ -4,17 +4,18 @@ import api from '../services/api';
 import { useUser } from '../context/UserContext';
 import { formatRelativeTime } from '../utils/timeUtils';
 import Linkify from './Linkify';
+import VerifiedBadge from './VerifiedBadge';
 
 interface Comment {
   _id: string;
-  author: { userid: string; name: string; profilePic: string };
+  author: { userid: string; name: string; profilePic: string; isVerified?: boolean };
   text: string;
   createdAt: string;
 }
 
 interface Post {
   _id: string;
-  author: { userid: string; name: string; profilePic: string };
+  author: { userid: string; name: string; profilePic: string; isVerified?: boolean };
   caption?: string;
   createdAt: string;
 }
@@ -91,7 +92,10 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' }}>
                   <img src={post.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{post.author.userid || post.author.name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{post.author.userid}</p>
+                      {post.author.isVerified && <VerifiedBadge size={12} />}
+                    </div>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       <Linkify text={post.caption || ''} />
                     </p>
@@ -108,7 +112,10 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                     <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid || comment.author.name)}&background=random`} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{comment.author.userid || comment.author.name}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{comment.author.userid}</p>
+                          {comment.author.isVerified && <VerifiedBadge size={12} />}
+                        </div>
                         {comment.author.userid === currentUserId && (
                           <button onClick={() => handleDelete(comment._id)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
                             <Trash2 size={14} />

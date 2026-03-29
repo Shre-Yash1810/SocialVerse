@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, FileText, ArrowLeft } from 'lucide-react';
+import VerifiedBadge from './VerifiedBadge';
 
 interface MessageBubbleProps {
   msg: any;
@@ -125,7 +126,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
           <div onClick={() => setActiveSharedContent(msg.sharedPost)} style={{ cursor: 'pointer' }}>
             <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)' }}>
               <img src={msg.sharedPost.author?.profilePic || `https://ui-avatars.com/api/?name=${msg.sharedPost.author?.userid}`} style={{ width: '24px', height: '24px', borderRadius: '50%' }} alt="" />
-              <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{msg.sharedPost.author?.userid}</span>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{msg.sharedPost.author?.userid}</span>
+                {msg.sharedPost.author?.isVerified && <VerifiedBadge size={12} />}
+              </div>
             </div>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#000' }}>
               {msg.sharedPost.type?.toLowerCase() === 'video' ? (

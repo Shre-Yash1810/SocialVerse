@@ -5,6 +5,7 @@ import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
 import CommentsModal from './CommentsModal';
+import VerifiedBadge from './VerifiedBadge';
 import '../styles/Feed.css';
 
 interface BlogDetailModalProps {
@@ -69,7 +70,10 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <img src={post.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.userid || 'A')}&background=6366f1&color=fff`} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.2)' }} alt="" />
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#fff' }}>{post.author?.userid || 'Author'}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#fff' }}>@{post.author?.userid || 'Author'}</h3>
+              {post.author?.isVerified && <VerifiedBadge size={14} />}
+            </div>
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>{formatRelativeTime(post.createdAt)}</span>
           </div>
         </div>

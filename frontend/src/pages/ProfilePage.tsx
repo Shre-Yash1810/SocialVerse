@@ -16,7 +16,9 @@ import { ProfileSkeleton } from '../components/Skeletons';
 import { useUser } from '../context/UserContext';
 import { useNavbarAction } from '../context/NavbarActionContext';
 import AllBadgesModal from '../components/AllBadgesModal';
+import VerifiedBadge from '../components/VerifiedBadge';
 import { BADGE_CONFIG } from '../utils/badges';
+import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 import '../styles/Profile.css';
 
 
@@ -206,7 +208,7 @@ const ProfilePage: React.FC = () => {
           <div className="profile-pic-container">
             <div className="profile-pic-ring" onClick={() => setIsPreviewOpen(true)}>
               {user.profilePic ? (
-                <img src={user.profilePic} alt={user.name} className="main-profile-pic" />
+                <img src={getOptimizedAvatarUrl(user.profilePic)} alt={user.name} className="main-profile-pic" />
               ) : (
                 <div className="main-profile-pic-placeholder">
                   <UserIcon size={40} strokeWidth={1.5} />
@@ -239,28 +241,6 @@ const ProfilePage: React.FC = () => {
             </div>
             <h1 className="display-name-refined">
               {user.name}
-              {user.isVerified && (
-                <div className="verified-celestial-wrap">
-                  <svg width="20" height="20" viewBox="0 0 100 100" className="verified-rosette">
-                    <defs>
-                      <radialGradient id="celestialGradient" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#1e3a8a" />
-                      </radialGradient>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="2.5" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                    </defs>
-                    <path 
-                      d="M50 2 L61 14 L77 10 L82 25 L97 28 L92 43 L98 58 L84 68 L80 83 L64 87 L50 98 L36 87 L20 83 L16 68 L2 58 L8 43 L3 28 L18 25 L23 10 L39 14 Z" 
-                      fill="url(#celestialGradient)" 
-                      filter="url(#glow)"
-                    />
-                    <path d="M32 52 L45 65 L72 38" fill="none" stroke="white" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-              )}
             </h1>
           </div>
           
@@ -305,7 +285,10 @@ const ProfilePage: React.FC = () => {
           )}
 
           <div className="handle-row">
-            <span className="handle">@{user.userid}</span>
+            <span className="handle" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {user.userid}
+              {user.isVerified && <VerifiedBadge size={14} />}
+            </span>
             {user.pronouns && (
               <>
                 <span className="dot-separator">•</span>
@@ -359,7 +342,7 @@ const ProfilePage: React.FC = () => {
           </div>
 
           {memories.length > 0 && (
-            <div className="highlights-container animate-fade-in" style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '24px', overflowX: 'auto', paddingBottom: '10px' }}>
+            <div className="highlights-container animate-fade-in" style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '5px', overflowX: 'auto', paddingBottom: '10px' }}>
               <div 
                 style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
                 onClick={() => setActiveMemory(true)}
@@ -367,7 +350,7 @@ const ProfilePage: React.FC = () => {
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', padding: '2px', background: 'linear-gradient(45deg, #e2e8f0, #cbd5e1)' }}>
                   <div style={{ width: '100%', height: '100%', borderRadius: '50%', border: '2px solid var(--bg-main)', overflow: 'hidden' }}>
                     {memories[0].type === 'image' ? (
-                      <img src={memories[0].media} alt="Memories" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={getOptimizedImageUrl(memories[0].media, { width: 150 })} alt="Memories" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                     ) : (
                       <video src={memories[0].media} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
                     )}
@@ -429,7 +412,7 @@ const ProfilePage: React.FC = () => {
                       }}
                       onClick={() => post.type === 'Blog' ? setActiveDetailBlog(post) : setActiveDetailPost(post)}
                     >
-                      {post.type === 'Image' && <img src={post.content} alt="" />}
+                      {post.type === 'Image' && <img src={getOptimizedImageUrl(post.content, { width: 400 })} alt="" loading="lazy" />}
                       {post.type === 'Video' && <video src={post.content} muted />}
                       {post.type === 'Blog' && (
                         <div style={{ padding: '20px', color: 'white', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -525,6 +508,7 @@ const ProfilePage: React.FC = () => {
       {activeMemory && memories.length > 0 && (
         <MomentViewerModal 
           momentGroup={{ user, moments: memories }}
+          isMemoryMode={true}
           onClose={() => setActiveMemory(false)}
         />
       )}

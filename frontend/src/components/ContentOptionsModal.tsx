@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldAlert, ChevronLeft, AlertCircle } from 'lucide-react';
+import { X, ShieldAlert, ChevronLeft, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import api from '../services/api';
 import '../styles/Settings.css';
@@ -15,9 +15,23 @@ const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, co
   const [activeView, setActiveView] = useState<'main' | 'report'>('main');
   const [reportReason, setReportReason] = useState('Spam');
   const [reportDetails, setReportDetails] = useState('');
-  const [screenshot, setScreenshot] = useState('');
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setScreenshot(base64String);
+        setPreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,10 +40,10 @@ const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, co
       await api.post('/posts/report', { 
         targetId: contentId, 
         targetType: contentType,
-        reason: `${reportReason} - ${reportDetails}`,
+        reason: `${reportReason}${reportDetails ? ` - ${reportDetails}` : ''}`,
         screenshot
       });
-      setMessage('Report submitted successfully. We will review this shortly.');
+      setMessage('Report submitted successfully with evidence. We will review this shortly.');
       setTimeout(() => onClose(), 2000);
     } catch (err) {
       console.error('Failed to report content', err);
@@ -97,14 +111,44 @@ const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, co
             />
           </div>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px' }}>Evidence (Screenshot URL)</label>
-            <input 
-              type="text"
-              placeholder="Paste image link here..."
-              value={screenshot}
-              onChange={e => setScreenshot(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-            />
+            <label style={{ display: 'block', marginBottom: '8px' }}>Evidence (Upload Screenshot)</label>
+            <div style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '8px', 
+              background: 'rgba(255,255,255,0.05)', 
+              border: '1px dotted rgba(255,255,255,0.2)', 
+              color: '#fff',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              position: 'relative'
+            }}>
+              <input 
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ 
+                  position: 'absolute', 
+                  top: 0, 
+                  left: 0, 
+                  width: '100%', 
+                  height: '100%', 
+                  opacity: 0, 
+                  cursor: 'pointer' 
+                }}
+              />
+              {preview ? (
+                <img src={preview} alt="Preview" style={{ width: '100%', maxHeight: '150px', objectFit: 'contain', borderRadius: '4px' }} />
+              ) : (
+                <>
+                  <ImageIcon size={24} style={{ opacity: 0.5 }} />
+                  <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>Click to upload screenshot</span>
+                </>
+              )}
+            </div>
           </div>
           <button 
             type="submit" 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, likePost, savePost, getFeed, getFollowingFeed, getComments, getUserPosts, reportPost } from '../controllers/postController';
+import { createPost, likePost, savePost, getFeed, getFollowingFeed, getComments, getUserPosts, reportPost, getPostById } from '../controllers/postController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
@@ -12,5 +12,6 @@ router.get('/user/:handle', protect, getUserPosts);
 router.get('/:postId/comments', protect, getComments);
 router.post('/:postId/like', protect, likePost);
 router.post('/:postId/save', protect, savePost);
+router.get('/:postId', protect, getPostById);
 
 export default router;

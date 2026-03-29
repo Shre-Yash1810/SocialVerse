@@ -6,7 +6,7 @@ import RightSidebar from './RightSidebar';
 import { useUser } from '../context/UserContext';
 import { useNavbarAction } from '../context/NavbarActionContext';
 
-const MainLayout: React.FC = () => {
+const MainLayout: React.FC = React.memo(() => {
   const location = useLocation();
   
   const { user } = useUser();
@@ -39,6 +39,6 @@ const MainLayout: React.FC = () => {
       {!isDashboardView && !isChatView && <RightSidebar />}
     </div>
   );
-};
+});
 
 export default MainLayout;

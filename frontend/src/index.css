@@ -43,6 +43,25 @@ input {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Universal Verified Badge Styles */
+.verified-celestial-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.verified-rosette {
+  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3));
+  animation: starPulse 4s infinite ease-in-out;
+}
+
+@keyframes starPulse {
+  0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3)); }
+  50% { transform: scale(1.05); filter: brightness(1.2) drop-shadow(0 4px 12px rgba(59, 130, 246, 0.5)); }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }

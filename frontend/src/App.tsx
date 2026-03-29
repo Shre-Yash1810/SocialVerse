@@ -36,7 +36,7 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="popLayout">
       <Suspense fallback={<LoadingScreen />}>
-        <Routes location={location} key={location.pathname}>
+        <Routes location={location}>
           {/* Auth routes without MainLayout */}
           <Route path="/auth" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/onboarding" element={<PageTransition><OnboardingPage /></PageTransition>} />

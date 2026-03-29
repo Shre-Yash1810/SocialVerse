@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Hand, Check } from 'lucide-react';
 import api from '../services/api';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from '../components/VerifiedBadge';
 import '../styles/Feed.css';
 
 const SearchPage: React.FC = () => {
@@ -152,8 +153,11 @@ const SearchPage: React.FC = () => {
             style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #efefef' }} 
           />
           <div>
-            <p style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{user.userid}</p>
-            <p style={{ fontSize: '0.85rem', color: '#64748b' }}>{user.name || user.userid}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{user.userid}</p>
+              {user.isVerified && <VerifiedBadge size={14} />}
+            </div>
+            <p style={{ fontSize: '0.85rem', color: '#64748b' }}>{user.name}</p>
           </div>
         </div>
 

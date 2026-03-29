@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, MessageCircle, UserPlus, Hand, AtSign } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import api from '../services/api';
+import VerifiedBadge from '../components/VerifiedBadge';
 import '../styles/Feed.css';
 
 const NotificationsPage: React.FC = () => {
@@ -122,8 +123,12 @@ const NotificationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#1e293b', lineHeight: '1.4' }}>
-                      <span style={{ fontWeight: 700 }}>{notif.sender?.userid}</span> {getNotificationText(notif)}
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#1e293b', lineHeight: '1.4', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', marginRight: '4px' }}>
+                        {notif.sender?.userid}
+                        {notif.sender?.isVerified && <VerifiedBadge size={14} />}
+                      </span> 
+                      <span>{getNotificationText(notif)}</span>
                     </p>
                   </div>
 

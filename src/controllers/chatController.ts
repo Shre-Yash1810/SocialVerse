@@ -38,7 +38,7 @@ export const getChats = async (req: Request, res: Response) => {
     const userId = (req as any).user._id;
     // Filter chats where the current user is a participant
     const chats = await Chat.find({ participants: userId })
-      .populate('participants', 'userid name profilePic lastSeen')
+      .populate('participants', 'userid name profilePic lastSeen isVerified')
       .populate({
         path: 'lastMessage',
         populate: { path: 'sender', select: 'userid name' }
@@ -80,7 +80,7 @@ export const getChat = async (req: Request, res: Response) => {
   }
 
   try {
-    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic lastSeen').lean();
+    const chat = await Chat.findById(chatId).populate('participants', 'userid name profilePic lastSeen isVerified').lean();
     if (!chat) return res.status(404).json({ message: 'Chat not found' });
     res.json(chat);
   } catch (error) {
@@ -123,11 +123,11 @@ export const getMessages = async (req: Request, res: Response) => {
     }
 
     const messages = await Message.find(query)
-      .populate('sender', 'userid name profilePic')
+      .populate('sender', 'userid name profilePic isVerified')
       .populate({
         path: 'sharedPost',
         select: 'type content caption author',
-        populate: { path: 'author', select: 'userid name profilePic' }
+        populate: { path: 'author', select: 'userid name profilePic isVerified' }
       })
       .populate('sharedMoment')
       .sort({ createdAt: -1 })
@@ -349,7 +349,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       type: (type || 'text') as any
     });
 
-    const populatedMessage = await Message.findById(message._id).populate('sender', 'userid name profilePic');
+    const populatedMessage = await Message.findById(message._id).populate('sender', 'userid name profilePic isVerified');
 
     const chat = await Chat.findByIdAndUpdate(
       chatId, 
@@ -421,10 +421,10 @@ export const sharePost = async (req: Request, res: Response) => {
       });
 
       const populatedMessage = await Message.findById(message._id)
-        .populate('sender', 'userid name profilePic')
+        .populate('sender', 'userid name profilePic isVerified')
         .populate({
            path: 'sharedPost',
-           populate: { path: 'author', select: 'userid name profilePic' }
+           populate: { path: 'author', select: 'userid name profilePic isVerified' }
         });
 
       // Update chat last message

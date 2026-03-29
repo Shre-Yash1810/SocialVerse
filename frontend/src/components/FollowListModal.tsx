@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from './VerifiedBadge';
 
 interface FollowListModalProps {
   userHandle: string;
@@ -83,8 +84,11 @@ const FollowListModal: React.FC<FollowListModalProps> = ({ userHandle, type, onC
                     style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #efefef' }} 
                   />
                   <div style={{ marginLeft: '12px', flex: 1 }}>
-                    <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#262626' }}>{u.userid}</p>
-                    <p style={{ fontSize: '0.8rem', color: '#8e8e8e' }}>{u.name || u.userid}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#262626' }}>{u.userid}</p>
+                      {u.isVerified && <VerifiedBadge size={12} />}
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: '#8e8e8e' }}>{u.name}</p>
                   </div>
                   
                   {!isSelf && (

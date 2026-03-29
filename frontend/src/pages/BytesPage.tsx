@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, MoreVertical, Music } from 'lucide-react';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
@@ -8,11 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import { useByte } from '../context/ByteContext';
 import { useUser } from '../context/UserContext';
 import Linkify from '../components/Linkify';
+import VerifiedBadge from '../components/VerifiedBadge';
 import '../styles/Feed.css';
 
 interface Reel {
   _id: string;
-  author: { userid: string; name: string; profilePic: string };
+  author: { userid: string; name: string; profilePic: string; isVerified?: boolean };
   type: string;
   content: string;
   caption?: string;
@@ -101,7 +103,10 @@ const BytePlayer: React.FC<{
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#444', border: '1px solid white', overflow: 'hidden' }}>
               <img src={reel.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(reel.author.userid || reel.author.name)}&background=random`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <span style={{ fontWeight: 600 }}>{reel.author.userid || reel.author.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontWeight: 600 }}>{reel.author.userid}</span>
+              {reel.author.isVerified && <VerifiedBadge size={14} />}
+            </div>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -116,7 +121,7 @@ const BytePlayer: React.FC<{
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', opacity: 0.9 }}>
             <Music size={14} />
-            <span>Original Audio - {reel.author.userid || reel.author.name}</span>
+            <span>Original Audio - {reel.author.userid}</span>
             <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>• {formatRelativeTime(reel.createdAt)}</span>
           </div>
         </div>
@@ -151,7 +156,20 @@ const BytesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const investigateId = searchParams.get('investigate');
+    if (investigateId && reels.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`byte-${investigateId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+    }
+  }, [searchParams, reels]);
 
   const fetchReels = async () => {
     if (!user?._id) return;
@@ -206,14 +224,15 @@ const BytesPage: React.FC = () => {
             </div>
         ) : (
           reels.map(reel => (
-            <BytePlayer 
-              key={reel._id} 
-              reel={reel} 
-              onLike={toggleLike} 
-              onComment={handleComment} 
-              onShare={handleShare}
-              navigate={navigate}
-            />
+            <div id={`byte-${reel._id}`} key={reel._id}>
+              <BytePlayer 
+                reel={reel} 
+                onLike={toggleLike} 
+                onComment={handleComment} 
+                onShare={handleShare}
+                navigate={navigate}
+              />
+            </div>
           ))
         )}
       </main>

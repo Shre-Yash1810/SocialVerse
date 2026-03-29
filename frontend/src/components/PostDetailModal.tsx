@@ -5,6 +5,7 @@ import api from '../services/api';
 import { formatRelativeTime } from '../utils/timeUtils';
 import ShareModal from './ShareModal';
 import Linkify from './Linkify';
+import VerifiedBadge from './VerifiedBadge';
 import '../styles/Feed.css';
 
 interface PostDetailModalProps {
@@ -129,7 +130,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
       <div className="post-detail-modal-content animate-scale">
         <div className="pd-header mobile-only" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #efefef', background: 'white', position: 'relative' }}>
           <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-          <span style={{ fontWeight: 610, fontSize: '0.9rem' }}>{localPost.author?.userid || 'Unknown User'}</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontWeight: 610, fontSize: '0.9rem' }}>{localPost.author?.userid}</span>
+              {localPost.author?.isVerified && <VerifiedBadge size={14} />}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#8e8e8e' }}>{localPost.author?.name}</span>
+          </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button onClick={() => setIsOptionsOpen(true)} style={{ background: 'none', border: 'none', color: '#262626', cursor: 'pointer', display: 'flex', padding: '4px' }}>
               <MoreHorizontal size={22} />
@@ -162,7 +169,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
 
           <div className="pd-header desktop-only" style={{ padding: '16px', borderBottom: '1px solid #efefef', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
             <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-            <span style={{ fontWeight: 600 }}>{localPost.author?.userid || 'Unknown User'}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontWeight: 600 }}>{localPost.author?.userid}</span>
+                {localPost.author?.isVerified && <VerifiedBadge size={14} />}
+              </div>
+              <span style={{ fontSize: '0.8rem', color: '#8e8e8e' }}>{localPost.author?.name}</span>
+            </div>
             <button onClick={() => setIsOptionsOpen(true)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#262626', cursor: 'pointer', display: 'flex' }}>
               <MoreHorizontal size={20} />
             </button>
@@ -181,7 +194,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
               <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#262626' }}>{localPost.likes?.length || 0} likes</p>
               {localPost.caption && (
                 <p style={{ fontSize: '0.95rem', lineHeight: '1.4', color: '#262626' }}>
-                  <strong style={{ marginRight: '6px', fontWeight: 700 }}>{localPost.author?.userid}</strong>
+                  <strong style={{ marginRight: '6px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    {localPost.author?.userid}
+                    {localPost.author?.isVerified && <VerifiedBadge size={12} />}
+                  </strong>
                    <Linkify text={localPost.caption} />
                 </p>
               )}
@@ -197,7 +213,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                 <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                   <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                   <div>
-                    <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                      {comment.author.isVerified && <VerifiedBadge size={12} />}
+                    </div>
                     <p style={{ fontSize: '0.9rem' }}>
                       <Linkify text={comment.text} />
                     </p>
@@ -235,7 +254,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                       <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                         <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                         <div>
-                          <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '2px' }}>{comment.author.userid}</p>
+                            {comment.author.isVerified && <VerifiedBadge size={12} />}
+                          </div>
                           <p style={{ fontSize: '0.9rem', color: '#262626' }}>
                             <Linkify text={comment.text} />
                           </p>
@@ -277,7 +299,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
             <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '6px' }}>{localPost.likes?.length || 0} likes</p>
             {localPost.caption && (
               <p style={{ fontSize: '0.9rem', marginBottom: '8px', lineHeight: '1.4' }}>
-                <strong style={{ marginRight: '6px' }}>{localPost.author?.userid}</strong>
+                <strong style={{ marginRight: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  @{localPost.author?.userid}
+                  {localPost.author?.isVerified && <VerifiedBadge size={12} />}
+                </strong>
                 <Linkify text={localPost.caption} />
               </p>
             )}

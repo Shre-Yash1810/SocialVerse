@@ -11,6 +11,7 @@ import PostDetailModal from '../components/PostDetailModal';
 import BlogDetailModal from '../components/BlogDetailModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 interface SharedPost {
   _id: string;
@@ -197,11 +198,19 @@ const ChatPage: React.FC = () => {
   }
 
   const otherParticipant = chat?.participants?.find((p: any) => p._id !== user?._id) || null;
-  const chatName = chat?.isGroup ? chat.name : (otherParticipant?.name || otherParticipant?.userid || 'Unknown User');
-  const chatAvatar = (chat?.isGroup ? '' : otherParticipant?.profilePic) || '';
+  const chatName = chat?.isGroup ? chat.name : (otherParticipant?.userid || 'Unknown');
+  const chatSubtext = chat?.isGroup ? `${chat.participants.length} members` : (otherParticipant?.name || '');
+  const chatAvatar = (chat?.isGroup ? (chat.groupPic || '') : otherParticipant?.profilePic) || '';
 
   return (
-    <div className="chat-page-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+    <div className="chat-page-container" style={{ 
+      height: '100dvh', 
+      minHeight: '-webkit-fill-available',
+      display: 'flex', 
+      flexDirection: 'column', 
+      overflow: 'hidden', 
+      position: 'relative' 
+    }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url("https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070")', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.6)', zIndex: 0 }}></div>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(circle at center, transparent, rgba(15, 23, 42, 0.4))', zIndex: 1 }}></div>
 
@@ -212,14 +221,20 @@ const ChatPage: React.FC = () => {
             <img src={chatAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chatName || 'C')}&background=random`} alt={chatName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff' }}>{chatName}</h3>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center' }}>
+              {chatName}
+              {!chat?.isGroup && otherParticipant?.isVerified && <VerifiedBadge size={14} />}
+            </h3>
             <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, color: '#e2e8f0', fontWeight: 500 }}>
-              {chat?.isGroup ? `${chat.participants.length} members` : (
-                otherParticipant?.lastSeen
-                  ? (new Date().getTime() - new Date(otherParticipant.lastSeen).getTime() < 5 * 60 * 1000
-                    ? 'Active now'
-                    : `Active ${formatRelativeTime(otherParticipant.lastSeen)}`)
-                  : 'Offline'
+              {chat?.isGroup ? chatSubtext : (
+                <>
+                  {chatSubtext && <span style={{ marginRight: '8px' }}>{chatSubtext}</span>}
+                  {otherParticipant?.lastSeen
+                    ? (new Date().getTime() - new Date(otherParticipant.lastSeen).getTime() < 5 * 60 * 1000
+                      ? '• Active now'
+                      : `• Active ${formatRelativeTime(otherParticipant.lastSeen)}`)
+                    : '• Offline'}
+                </>
               )}
             </p>
           </div>

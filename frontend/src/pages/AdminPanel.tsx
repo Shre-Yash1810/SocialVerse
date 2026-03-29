@@ -31,6 +31,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import logo from '../assets/logo/logo-light.png';
+import ProofViewerModal from '../components/ProofViewerModal';
 import '../styles/AdminPanel.css';
 
 const AdminPanel: React.FC = () => {
@@ -45,6 +46,7 @@ const AdminPanel: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chartMounted, setChartMounted] = useState(false);
+  const [activeProof, setActiveProof] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -297,7 +299,7 @@ const AdminPanel: React.FC = () => {
                     </div>
                     <span className="m-subtext">Verified nodes in last 24h</span>
                   </div>
-
+                
                   <div className="metric-card">
                     <span className="m-label">Content Stream</span>
                     <div className="m-value-wrap">
@@ -396,7 +398,6 @@ const AdminPanel: React.FC = () => {
                 </div>
                 
                 <div className="sub-panel table-scroll-panel" style={{ padding: 0 }}>
-                  {/* Desktop-only Table View */}
                   <div className="table-responsive-wrapper desktop-only">
                     <table className="hq-table-refined">
                       <thead>
@@ -409,110 +410,158 @@ const AdminPanel: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredUsers.map(user => (
-                          <tr key={user._id}>
-                            <td>
-                              <div className="user-cell-wrap">
-                                <img src={user.profilePic || logo} alt="" />
-                                <div className="user-cell-meta">
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ fontWeight: 600 }}>{user.name}</span>
-                                    {user.isVerified && (
-                                      <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
-                                        <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
-                                        <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-                                      </svg>
-                                    )}
+                        {filteredUsers.map(user => {
+                          const isFounder = user.role === 'founder';
+                          const canEdit = currentUser?.role === 'founder' || !isFounder;
+                          
+                          return (
+                            <tr key={user._id}>
+                              <td>
+                                <div className="user-cell-wrap">
+                                  <img src={user.profilePic || logo} alt="" />
+                                  <div className="user-cell-meta">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ fontWeight: 600, color: '#fff' }}>{user.userid}</span>
+                                      {user.isVerified && (
+                                        <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
+                                          <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
+                                          <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <span className="handle" style={{ fontSize: '0.75rem', opacity: 0.7 }}>{user.name}</span>
                                   </div>
-                                  <span className="handle">joined platforms</span>
                                 </div>
-                              </div>
-                            </td>
-                            <td style={{ fontFamily: 'monospace', color: 'var(--hq-accent)', fontSize: '0.9rem' }}>@{user.userid}</td>
-                            <td>
-                              <button 
-                                className={`hq-status-pill ${user.isVerified ? 'verified' : 'unverified'}`}
-                                onClick={() => handleToggleVerify(user._id)}
-                                title={user.isVerified ? 'Click to unverify' : 'Click to verify'}
-                              >
-                                {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
-                              </button>
-                            </td>
-                            <td>
-                              <select value={user.role} onChange={(e) => handleUpdateRole(user._id, e.target.value)} className="hq-select-refined" disabled={user._id === currentUser?._id}>
-                                <option value="user">USER</option>
-                                <option value="admin">ADMIN</option>
-                                <option value="founder">FOUNDER</option>
-                              </select>
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px' }}>
+                              </td>
+                              <td style={{ fontFamily: 'monospace', color: 'var(--hq-accent)', fontSize: '0.9rem' }}>{user.role.toUpperCase()}</td>
+                              <td>
                                 <button 
-                                  className={`action-btn-${user.isBanned ? 'green' : 'red'}`} 
-                                  onClick={() => handleToggleBan(user._id)} 
-                                  title={user.isBanned ? 'Lift Ban' : 'Suspend Node'}
-                                  style={{ background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: user.isBanned ? '#22c55e' : '#ef4444', border: 'none', padding: '6px', borderRadius: '6px' }}
+                                  className={`hq-status-pill ${user.isVerified ? 'verified' : 'unverified'}`}
+                                  onClick={() => handleToggleVerify(user._id)}
+                                  disabled={!canEdit}
+                                  title={!canEdit ? 'Founder status is protected' : (user.isVerified ? 'Click to unverify' : 'Click to verify')}
                                 >
-                                  <ShieldCheck size={16} />
+                                  {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
                                 </button>
-                                <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'} title="Terminate Node">
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td>
+                                <select 
+                                  value={user.role} 
+                                  onChange={(e) => handleUpdateRole(user._id, e.target.value)} 
+                                  className="hq-select-refined" 
+                                  disabled={user._id === currentUser?._id || !canEdit}
+                                >
+                                  <option value="user">USER</option>
+                                  <option value="admin">ADMIN</option>
+                                  {currentUser?.role === 'founder' && <option value="founder">FOUNDER</option>}
+                                </select>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button 
+                                    className={`action-btn-${user.isBanned ? 'green' : 'red'}`} 
+                                    onClick={() => handleToggleBan(user._id)} 
+                                    disabled={!canEdit}
+                                    title={!canEdit ? 'Founder status is protected' : (user.isBanned ? 'Lift Ban' : 'Suspend Node')}
+                                    style={{ 
+                                      background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
+                                      color: user.isBanned ? '#22c55e' : '#ef4444', 
+                                      border: 'none', padding: '6px', borderRadius: '6px',
+                                      opacity: !canEdit ? 0.3 : 1,
+                                      cursor: !canEdit ? 'not-allowed' : 'pointer'
+                                    }}
+                                  >
+                                    <ShieldCheck size={16} />
+                                  </button>
+                                  <button 
+                                    className="action-btn-red" 
+                                    onClick={() => handleDeleteUser(user._id)} 
+                                    disabled={!canEdit} 
+                                    title={!canEdit ? 'Founder status is protected' : "Terminate Node"}
+                                    style={{ 
+                                      opacity: !canEdit ? 0.3 : 1,
+                                      cursor: !canEdit ? 'not-allowed' : 'pointer'
+                                    }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
 
-                  {/* Mobile-native Card View */}
                   <div className="user-cards-stack mobile-only">
-                    {filteredUsers.map(user => (
-                      <div key={user._id} className="user-control-card">
-                        <div className="ucc-header">
-                          <img src={user.profilePic || logo} alt="" className="ucc-img" />
-                          <div className="ucc-info">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span className="ucc-name">{user.name}</span>
-                              {user.isVerified && (
-                                <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
-                                  <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
-                                  <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              )}
+                    {filteredUsers.map(user => {
+                      const isFounder = user.role === 'founder';
+                      const canEdit = currentUser?.role === 'founder' || !isFounder;
+
+                      return (
+                        <div key={user._id} className="user-control-card">
+                          <div className="ucc-header">
+                            <img src={user.profilePic || logo} alt="" className="ucc-img" />
+                            <div className="ucc-info">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span className="ucc-name">{user.userid}</span>
+                                {user.isVerified && (
+                                  <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
+                                    <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
+                                    <path d="M35 50 L45 60 L65 40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                )}
+                              </div>
+                              <span className="ucc-handle">{user.name}</span>
                             </div>
-                            <span className="ucc-handle">@{user.userid}</span>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button 
+                                className={`hq-status-pill sm ${user.isVerified ? 'verified' : 'unverified'}`}
+                                onClick={() => handleToggleVerify(user._id)}
+                                disabled={!canEdit}
+                              >
+                                {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                              </button>
+                              <button 
+                                  className={`action-btn-sm ${user.isBanned ? 'banned' : 'active'}`}
+                                  onClick={() => handleToggleBan(user._id)}
+                                  disabled={!canEdit}
+                                  style={{ 
+                                    background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
+                                    color: user.isBanned ? '#22c55e' : '#ef4444', 
+                                    border: 'none', padding: '4px', borderRadius: '4px', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    opacity: !canEdit ? 0.3 : 1
+                                  }}
+                              >
+                                <ShieldCheck size={14} />
+                              </button>
+                              <button 
+                                className="action-btn-red" 
+                                onClick={() => handleDeleteUser(user._id)} 
+                                disabled={!canEdit}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button 
-                              className={`hq-status-pill sm ${user.isVerified ? 'verified' : 'unverified'}`}
-                              onClick={() => handleToggleVerify(user._id)}
+                          <div className="ucc-footer">
+                            <label>Access Level</label>
+                            <select 
+                              value={user.role} 
+                              onChange={(e) => handleUpdateRole(user._id, e.target.value)} 
+                              className="hq-select-refined" 
+                              disabled={user._id === currentUser?._id || !canEdit}
                             >
-                              {user.isVerified ? 'VERIFIED' : 'UNVERIFIED'}
-                            </button>
-                            <button 
-                               className={`action-btn-sm ${user.isBanned ? 'banned' : 'active'}`}
-                               onClick={() => handleToggleBan(user._id)}
-                               style={{ background: user.isBanned ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: user.isBanned ? '#22c55e' : '#ef4444', border: 'none', padding: '4px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                               <ShieldCheck size={14} />
-                            </button>
-                            <button className="action-btn-red" onClick={() => handleDeleteUser(user._id)} disabled={user.role === 'founder' && currentUser?.role !== 'founder'}>
-                              <Trash2 size={14} />
-                            </button>
+                              <option value="user">USER</option>
+                              <option value="admin">ADMIN</option>
+                              {currentUser?.role === 'founder' && <option value="founder">FOUNDER</option>}
+                            </select>
                           </div>
                         </div>
-                        <div className="ucc-footer">
-                          <label>Access Level</label>
-                          <select value={user.role} onChange={(e) => handleUpdateRole(user._id, e.target.value)} className="hq-select-refined" disabled={user._id === currentUser?._id}>
-                            <option value="user">USER</option>
-                            <option value="admin">ADMIN</option>
-                            <option value="founder">FOUNDER</option>
-                          </select>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
@@ -568,7 +617,7 @@ const AdminPanel: React.FC = () => {
                             </button>
                             {r.screenshot && (
                               <button 
-                                onClick={() => window.open(r.screenshot, '_blank')}
+                                onClick={() => setActiveProof(r.screenshot)}
                                 style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
                               >
                                 <ArrowUpRight size={10} /> Proof Attached
@@ -597,14 +646,20 @@ const AdminPanel: React.FC = () => {
                             <span className="rc-badge" style={{ fontSize: '10px', padding: '2px 6px' }}>{r.targetType}</span>
                             <span className="rc-target">@{r.target?.author?.userid || 'Unknown'}</span>
                             <button 
-                              onClick={() => window.open(`/profile/${r.target?.author?.userid}`, '_blank')}
+                              onClick={() => {
+                                let path = '/feed';
+                                if (r.targetType?.toLowerCase() === 'post') path = '/feed';
+                                else if (r.targetType?.toLowerCase() === 'blog') path = '/blogs';
+                                else if (r.targetType?.toLowerCase() === 'moment' || r.targetType?.toLowerCase() === 'byte') path = '/bytes';
+                                window.open(`${path}?investigate=${r.target?._id}`, '_blank');
+                              }}
                               style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}
                             >
                               <Eye size={14} /> Investigate
                             </button>
                             {r.screenshot && (
                               <button 
-                                onClick={() => window.open(r.screenshot, '_blank')}
+                                onClick={() => setActiveProof(r.screenshot)}
                                 style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}
                               >
                                 <ArrowUpRight size={10} /> Proof Attached
@@ -646,7 +701,7 @@ const AdminPanel: React.FC = () => {
                               {r.reason?.substring(0, 30)}...
                               {r.screenshot && (
                                 <button 
-                                  onClick={() => window.open(r.screenshot, '_blank')}
+                                  onClick={() => setActiveProof(r.screenshot)}
                                   style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', marginLeft: '8px' }}
                                 >
                                   <ArrowUpRight size={12} />
@@ -665,7 +720,6 @@ const AdminPanel: React.FC = () => {
                     </table>
                   </div>
 
-                  {/* Mobile-only History Cards */}
                   <div className="history-cards-stack mobile-only">
                     {reports.filter(r => r.status !== 'Pending').slice(0, 10).map(r => (
                       <div key={r._id} className="history-card">
@@ -676,12 +730,12 @@ const AdminPanel: React.FC = () => {
                           </span>
                         </div>
                         <div className="hc-body">
-                          <div className="hc-meta">
+                           <div className="hc-meta">
                             <span className="hc-badge">{r.targetType}</span>
                             <span className="hc-date">{new Date(r.createdAt).toLocaleDateString()}</span>
                             {r.screenshot && (
                               <button 
-                                onClick={() => window.open(r.screenshot, '_blank')}
+                                onClick={() => setActiveProof(r.screenshot)}
                                 style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: 'var(--hq-accent)', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', fontSize: '10px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}
                               >
                                 <ArrowUpRight size={10} /> Proof
@@ -699,6 +753,13 @@ const AdminPanel: React.FC = () => {
           </AnimatePresence>
         </div>
       </main>
+      
+      {activeProof && (
+        <ProofViewerModal 
+          imageUrl={activeProof} 
+          onClose={() => setActiveProof(null)} 
+        />
+      )}
     </div>
   );
 };

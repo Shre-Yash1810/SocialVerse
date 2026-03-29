@@ -3,10 +3,10 @@ import Post from '../models/Post';
 import User from '../models/User';
 import Comment from '../models/Comment';
 import Report from '../models/Report';
+import CloudinaryService from '../services/CloudinaryService';
 import XPService from '../services/XPService';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
-import CloudinaryService from '../services/CloudinaryService';
 import { extractUserIdsFromMentions } from '../utils/mentionUtils';
 import mongoose from 'mongoose';
 
@@ -125,7 +125,7 @@ export const getFeed = async (req: Request, res: Response) => {
         { expiresAt: { $gt: new Date() } }
       ]
     })
-      .populate('author', 'userid name profilePic')
+      .populate('author', 'userid name profilePic isVerified')
       .sort({ createdAt: -1 })
       .limit(20);
 
@@ -140,7 +140,7 @@ export const getComments = async (req: Request, res: Response) => {
 
   try {
     const comments = await Comment.find({ post: postId as string })
-      .populate('author', 'userid name profilePic')
+      .populate('author', 'userid name profilePic isVerified')
       .sort({ createdAt: -1 });
     res.json(comments);
   } catch (error) {
@@ -160,7 +160,7 @@ export const getFollowingFeed = async (req: Request, res: Response) => {
         { expiresAt: { $gt: new Date() } }
       ]
     })
-      .populate('author', 'userid name profilePic')
+      .populate('author', 'userid name profilePic isVerified')
       .sort({ createdAt: -1 })
       .limit(20);
 
@@ -179,7 +179,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const posts = await Post.find({ author: user._id })
-      .populate('author', 'userid name profilePic')
+      .populate('author', 'userid name profilePic isVerified')
       .sort({ createdAt: -1 });
 
     res.json(posts);
@@ -193,15 +193,41 @@ export const reportPost = async (req: Request, res: Response) => {
   const userId = (req as any).user._id;
 
   try {
+    let finalScreenshot = screenshot;
+    if (screenshot && screenshot.startsWith('data:image')) {
+      finalScreenshot = await CloudinaryService.uploadFile(screenshot, 'reports');
+    }
+
     const report = await Report.create({
       reporter: userId,
       targetType: targetType || 'Post',
       target: targetId,
       reason,
-      screenshot
+      screenshot: finalScreenshot
     });
 
     res.status(201).json({ message: 'Content reported successfully', report });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getPostById = async (req: Request, res: Response) => {
+  const { postId } = req.params;
+  try {
+    const post = await Post.findById(postId)
+      .populate('author', 'userid name profilePic isVerified');
+    
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    
+    const userId = (req as any).user._id;
+    const postWithMeta = {
+      ...post.toObject(),
+      isLiked: post.likes?.some((id: any) => id.toString() === userId.toString()),
+      isSaved: post.savedBy?.some((id: any) => id.toString() === userId.toString())
+    };
+    
+    res.json(postWithMeta);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

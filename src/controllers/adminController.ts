@@ -5,6 +5,7 @@ import Comment from '../models/Comment';
 import Report from '../models/Report';
 import Moment from '../models/Moment';
 import Chat from '../models/Chat';
+import CloudinaryService from '../services/CloudinaryService';
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
@@ -150,6 +151,14 @@ export const updateUserRole = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'You cannot change your own role' });
     }
 
+    if (user.role === 'founder' && (req as any).user.role !== 'founder') {
+      return res.status(403).json({ message: 'Only a founder can modify another founder' });
+    }
+
+    if (role === 'founder' && (req as any).user.role !== 'founder') {
+      return res.status(403).json({ message: 'Only a founder can promote a user to Founder status' });
+    }
+
     user.role = role as 'user' | 'admin' | 'founder';
     await user.save();
 
@@ -164,6 +173,10 @@ export const toggleUserVerification = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.role === 'founder' && (req as any).user.role !== 'founder') {
+      return res.status(403).json({ message: 'Only a founder can change verification status for another founder' });
+    }
 
     user.isVerified = !user.isVerified;
     await user.save();
@@ -266,15 +279,15 @@ export const resolveReport = async (req: Request, res: Response) => {
     const report = await Report.findById(id);
     if (!report) return res.status(404).json({ message: 'Report not found' });
 
+    if (report.screenshot && report.screenshot.includes('cloudinary')) {
+       await CloudinaryService.deleteFile(report.screenshot);
+       report.screenshot = undefined;
+    }
+
     report.status = status as 'Resolved' | 'Dismissed';
     await report.save();
 
-    // If Resolved (Action Taken) and target is a post, we might want to hide it or delete it.
-    // For now, if it's Resolved, we mark it as handled. 
-    // If the Admin specifically wants to delete, they can do it from the content tabs,
-    // but here we mark the case as "Concluded with Action".
-
-    res.json({ message: `Report ${status.toLowerCase()} successfully`, report });
+    res.json({ message: `Report ${status.toLowerCase()} and evidence cleared successfully`, report });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

@@ -4,6 +4,7 @@ import User from '../models/User';
 import Report from '../models/Report';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
+import CloudinaryService from '../services/CloudinaryService';
 
 const isMockMode = () => mongoose.connection.readyState !== 1;
 
@@ -64,12 +65,17 @@ export const reportUser = async (req: Request, res: Response) => {
   }
 
   try {
+    let finalScreenshot = screenshot;
+    if (screenshot && screenshot.startsWith('data:image')) {
+      finalScreenshot = await CloudinaryService.uploadFile(screenshot, 'reports');
+    }
+
     const report = await Report.create({
       reporter: userId,
       targetType: targetType || 'User',
       target: targetId,
       reason,
-      screenshot
+      screenshot: finalScreenshot
     });
 
     res.status(201).json({ message: 'User reported successfully', report });
@@ -152,7 +158,7 @@ export const searchUsers = async (req: Request, res: Response) => {
         { userid: { $regex: q as string, $options: 'i' } },
         { name: { $regex: q as string, $options: 'i' } }
       ]
-    }).select('userid name profilePic followersCount followingCount');
+    }).select('userid name profilePic followersCount followingCount isVerified');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -168,8 +174,8 @@ export const getUserProfile = async (req: Request, res: Response) => {
     const lowerCaseHandle = (handle as string).toLowerCase();
     const user = await User.findOne({ userid: lowerCaseHandle })
       .select('-password -blockedUsers')
-      .populate('followers', 'userid name profilePic')
-      .populate('following', 'userid name profilePic');
+      .populate('followers', 'userid name profilePic isVerified')
+      .populate('following', 'userid name profilePic isVerified');
 
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -203,7 +209,6 @@ export const updateProfile = async (req: Request, res: Response) => {
     }
 
     if (profilePic && profilePic.startsWith('data:image')) {
-      const CloudinaryService = require('../services/CloudinaryService').default;
       const profilePicUrl = await CloudinaryService.uploadFile(profilePic, 'profile_pics');
       user.profilePic = profilePicUrl;
     }

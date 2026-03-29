@@ -22,6 +22,23 @@ class CloudinaryService {
       throw new Error('File upload failed');
     }
   }
+
+  async deleteFile(publicUrl: string) {
+    try {
+      // Extract public ID from URL
+      // Example URL: https://res.cloudinary.com/demo/image/upload/v1570974100/sample.jpg
+      const parts = publicUrl.split('/');
+      const fileNameWithExt = parts[parts.length - 1];
+      const publicId = fileNameWithExt.split('.')[0];
+      const folderPath = parts.slice(parts.indexOf('socialverse'), -1).join('/');
+      const fullPublicId = `${folderPath}/${publicId}`;
+
+      await cloudinary.uploader.destroy(fullPublicId);
+    } catch (error) {
+      console.error('Cloudinary delete error:', error);
+      // Don't throw here to avoid failing the report resolution if deletion fails
+    }
+  }
 }
 
 export default new CloudinaryService();

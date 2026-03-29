@@ -5,6 +5,7 @@ import MomentBar from '../components/MomentBar';
 import api from '../services/api';
 import { ChatListSkeleton } from '../components/ChatSkeletons';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 import CreateGroupModal from '../components/CreateGroupModal';
 import CreateMomentModal from '../components/CreateMomentModal';
@@ -215,8 +216,9 @@ const VerseChat: React.FC = () => {
               
               <div style={{ flex: 1, borderBottom: '1px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {chat.isGroup ? chat.name : chat.participants.find((p: any) => p.userid !== user?.userid)?.userid}
+                    {!chat.isGroup && chat.participants.find((p: any) => p.userid !== user?.userid)?.isVerified && <VerifiedBadge size={14} />}
                   </h3>
                   <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     {chat.lastMessage ? new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -224,6 +226,11 @@ const VerseChat: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: '0.85rem', color: chat.isRead ? '#64748b' : '#1e293b', fontWeight: chat.isRead ? 400 : 600, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {!chat.isGroup && chat.participants.find((p: any) => p.userid !== user?.userid)?.name && (
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginRight: '6px' }}>
+                        {chat.participants.find((p: any) => p.userid !== user?.userid)?.name || ''}
+                      </span>
+                    )}
                     {chat.lastMessage?.text || 'Start a conversation'}
                   </p>
                   <ChevronRight size={16} color="#cbd5e1" />

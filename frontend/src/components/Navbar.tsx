@@ -11,7 +11,7 @@ interface NavbarProps {
   onMoreClick?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ mode = 'home', onCreateClick, onSettingsClick, onMoreClick }) => {
+const Navbar: React.FC<NavbarProps> = React.memo(({ mode = 'home', onCreateClick, onSettingsClick, onMoreClick }) => {
   const navigate = useNavigate();
 
   return (
@@ -51,6 +51,6 @@ const Navbar: React.FC<NavbarProps> = ({ mode = 'home', onCreateClick, onSetting
       </div>
     </header>
   );
-};
+});
 
 export default Navbar;

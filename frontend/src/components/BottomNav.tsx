@@ -4,7 +4,7 @@ import { Home, MessageCircle, BookOpen, User } from 'lucide-react';
 import BytesIcon from './BytesIcon';
 import '../styles/Navigation.css';
 
-const BottomNav: React.FC = () => {
+const BottomNav: React.FC = React.memo(() => {
   const prefetch = (path: string) => {
     switch (path) {
       case '/feed': import('../pages/FeedPage'); break;
@@ -64,6 +64,6 @@ const BottomNav: React.FC = () => {
       </NavLink>
     </nav>
   );
-};
+});
 
 export default BottomNav;

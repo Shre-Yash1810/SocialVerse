@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
@@ -9,11 +9,13 @@ import { formatRelativeTime } from '../utils/timeUtils';
 import { FeedSkeleton } from '../components/Skeletons';
 import Linkify from '../components/Linkify';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from '../components/VerifiedBadge';
+import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 import '../styles/Feed.css';
 
 interface Post {
   _id: string;
-  author: { userid: string; name: string; profilePic: string };
+  author: { userid: string; name: string; profilePic: string; isVerified?: boolean };
   type: string;
   content: string;
   caption?: string;
@@ -73,7 +75,36 @@ const FeedPage: React.FC = () => {
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
   const [activeDetailPost, setActiveDetailPost] = useState<any | null>(null);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const handleDeepLink = async () => {
+    const investigateId = searchParams.get('investigate');
+    if (investigateId) {
+      // Find in existing posts first
+      const existing = posts.find(p => p._id === investigateId);
+      if (existing) {
+        setActiveDetailPost(existing);
+        return;
+      }
+      
+      // Otherwise fetch it
+      try {
+        const res = await api.get(`/posts/${investigateId}`);
+        if (res.data) {
+           setActiveDetailPost(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch investigation post', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (posts.length > 0) {
+      handleDeepLink();
+    }
+  }, [posts, searchParams]);
 
   const fetchFeed = async () => {
     if (!user?._id) return;
@@ -142,14 +173,21 @@ const FeedPage: React.FC = () => {
           posts.map(post => (
             <article key={post._id} className="post-card">
               <div className="post-header" onClick={() => navigate(`/profile/${post.author.userid}`)} style={{ cursor: 'pointer' }}>
-                <img src={post.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt={post.author.name} className="post-avatar" />
-                <div className="post-user-info">
-                  <h4>{post.author.userid || post.author.name}</h4>
-                  <p>{formatRelativeTime(post.createdAt)}</p>
-                </div>
+                <img src={getOptimizedAvatarUrl(post.author.profilePic) || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt={post.author.name} className="post-avatar" loading="lazy" />
+                  <div className="post-user-info">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <h4 style={{ margin: 0 }}>{post.author.userid}</h4>
+                      {post.author.isVerified && <VerifiedBadge size={14} />}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{post.author.name}</p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>•</span>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatRelativeTime(post.createdAt)}</p>
+                    </div>
+                  </div>
               </div>
               <div className="post-image-container" onClick={() => setActiveDetailPost(post)} style={{ cursor: 'pointer' }}>
-                {post.type === 'Image' && <img src={post.content} alt="Post content" className="post-image" />}
+                {post.type === 'Image' && <img src={getOptimizedImageUrl(post.content, { width: 800 })} alt="Post content" className="post-image" loading="lazy" />}
                 {post.type === 'Video' && <FeedVideo src={post.content} />}
               </div>
               <div className="post-actions">
@@ -179,7 +217,10 @@ const FeedPage: React.FC = () => {
               <div className="post-content">
                 <p><strong>{post.likes?.length || 0} likes</strong></p>
                 <p className="post-caption">
-                  <strong>{post.author.userid || post.author.name}</strong> <Linkify text={post.caption || ''} />
+                  <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    {post.author.userid}
+                    {post.author.isVerified && <VerifiedBadge size={12} />}
+                  </strong> <Linkify text={post.caption || ''} />
                 </p>
                 {post.commentsCount > 0 && (
                   <p 

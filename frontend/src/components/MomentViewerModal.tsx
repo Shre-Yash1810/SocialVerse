@@ -3,12 +3,14 @@ import { X, Eye, Trash2, Star, Loader2, MoreHorizontal } from 'lucide-react';
 import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
 import { useUser } from '../context/UserContext';
+import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 
 interface MomentViewerModalProps {
   momentGroup: any;
   onClose: () => void;
   onNextGroup?: () => void;
   onPrevGroup?: () => void;
+  isMemoryMode?: boolean;
 }
 
 const FONTS = {
@@ -19,7 +21,7 @@ const FONTS = {
   Strong: "'Anton', sans-serif"
 };
 
-const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onClose, onNextGroup, onPrevGroup }) => {
+const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onClose, onNextGroup, onPrevGroup, isMemoryMode = false }) => {
   const { user } = useUser();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -64,7 +66,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
     const currentMoment = momentGroup.moments[currentIndex];
     const isAlreadyViewed = (currentMoment?.viewers || []).some((v: any) => (v._id || v) === currentUserId);
     
-    if (currentMoment && !isAlreadyViewed && momentGroup.user.userid !== currentUserId) {
+    if (currentMoment && !isAlreadyViewed && momentGroup.user.userid !== currentUserId && !isMemoryMode) {
         api.post(`/moments/${currentMoment._id}/view`).catch(e => console.error(e));
     }
   }, [currentIndex, momentGroup, currentUserId]);
@@ -115,8 +117,21 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
   const isAuthor = momentGroup.user.userid === currentUserId;
 
   return (
-    <div className="modal-overlay animate-fade-in" style={{ zIndex: 3000, background: '#000', position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', height: '100%', maxHeight: '100dvh', background: '#000', display: 'flex', flexDirection: 'column' }}>
+    <div className="modal-overlay animate-fade-in" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ 
+        position: 'relative', 
+        width: '100%', 
+        maxWidth: '420px', 
+        height: '92vh', 
+        maxHeight: '850px', 
+        background: '#000', 
+        display: 'flex', 
+        flexDirection: 'column',
+        borderRadius: '42px',
+        overflow: 'hidden',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 12px #1e293b',
+        border: '4px solid #334155'
+      }}>
         
         {/* Progress Bars */}
         <div style={{ display: 'flex', gap: '4px', padding: '12px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100 }}>
@@ -135,7 +150,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 16px 12px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100, background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={momentGroup.user.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(momentGroup.user.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)' }} alt="" />
+            <img src={getOptimizedAvatarUrl(momentGroup.user.profilePic) || `https://ui-avatars.com/api/?name=${encodeURIComponent(momentGroup.user.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)' }} alt="" />
             <span style={{ color: 'white', fontWeight: 700, fontSize: '0.9rem', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{momentGroup.user.userid}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
@@ -159,7 +174,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
 
           {currentMoment.type === 'image' ? (
              <img 
-               src={currentMoment.media} 
+               src={getOptimizedImageUrl(currentMoment.media, { width: 1080 })} 
                alt="" 
                onLoad={() => setIsLoading(false)}
                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isLoading ? 0 : 1, transition: 'opacity 0.2s' }} 
@@ -224,13 +239,17 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
         {/* Footer Controls */}
         {isAuthor && !showViewers && (
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '30px 20px', display: 'flex', justifyContent: 'space-between', zIndex: 250, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }}>
-            <button onClick={() => setShowViewers(true)} style={{ color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer', padding: '10px 16px', borderRadius: '25px' }}>
-              <Eye size={18} /> {currentMoment.viewers?.length || 0}
-            </button>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={handleMemory} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Star size={20} />
+            {!isMemoryMode ? (
+              <button onClick={() => setShowViewers(true)} style={{ color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer', padding: '10px 16px', borderRadius: '25px' }}>
+                <Eye size={18} /> {currentMoment.viewers?.length || 0}
               </button>
+            ) : <div />}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {!isMemoryMode && (
+                <button onClick={handleMemory} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <Star size={20} />
+                </button>
+              )}
               <button onClick={handleDelete} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <Trash2 size={20} />
               </button>
@@ -254,7 +273,7 @@ const MomentViewerModal: React.FC<MomentViewerModalProps> = ({ momentGroup, onCl
               ) : (
                 currentMoment.viewers?.map((v: any, index: number) => (
                   <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 0' }}>
-                    <img src={v.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.userid)}&background=random`} style={{ width: '44px', height: '44px', borderRadius: '14px', objectFit: 'cover' }} alt="" />
+                    <img src={getOptimizedAvatarUrl(v.profilePic) || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.userid)}&background=random`} style={{ width: '44px', height: '44px', borderRadius: '14px', objectFit: 'cover' }} alt="" />
                     <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{v.userid}</span>
                   </div>
                 ))

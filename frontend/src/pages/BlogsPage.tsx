@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import BlogDetailModal from '../components/BlogDetailModal';
 import { useUser } from '../context/UserContext';
+import VerifiedBadge from '../components/VerifiedBadge';
 import '../styles/Feed.css';
 
 interface Blog {
   _id: string;
-  author: { userid: string; name: string; profilePic: string };
+  author: { userid: string; name: string; profilePic: string; isVerified?: boolean };
   type: string;
   content: string; // The blog text
   caption?: string; // The title
@@ -18,6 +20,22 @@ const BlogsPage: React.FC = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [activeDetailBlog, setActiveDetailBlog] = useState<any | null>(null);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const investigateId = searchParams.get('investigate');
+    if (investigateId && blogs.length > 0) {
+      const target = blogs.find(b => b._id === investigateId);
+      if (target) {
+        setActiveDetailBlog(target);
+      } else {
+        // Fetch specific blog if not in list
+        api.get(`/posts/${investigateId}`).then(res => {
+          if (res.data) setActiveDetailBlog(res.data);
+        }).catch(err => console.error('Failed to fetch blog for investigation', err));
+      }
+    }
+  }, [searchParams, blogs]);
 
   const fetchBlogs = async () => {
     if (!user?._id) return;
@@ -80,7 +98,10 @@ const BlogsPage: React.FC = () => {
                           src={featuredBlog.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredBlog.author.userid || featuredBlog.author.name)}&background=random`} 
                           alt="" 
                         />
-                        <span>{featuredBlog.author.userid}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>{featuredBlog.author.userid}</span>
+                          {featuredBlog.author.isVerified && <VerifiedBadge size={12} />}
+                        </div>
                       </div>
                       <span className="spacer">•</span>
                       <span>{calculateReadTime(featuredBlog.content || '')}</span>
@@ -100,7 +121,10 @@ const BlogsPage: React.FC = () => {
                         <div className="blog-meta">
                           <div className="author-mini">
                             <img src={blog.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(blog.author.userid || blog.author.name)}&background=random`} alt="" />
-                            <span>{blog.author.userid}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>{blog.author.userid}</span>
+                              {blog.author.isVerified && <VerifiedBadge size={12} />}
+                            </div>
                           </div>
                           <span className="spacer">•</span>
                           <span>{calculateReadTime(blog.content)}</span>
