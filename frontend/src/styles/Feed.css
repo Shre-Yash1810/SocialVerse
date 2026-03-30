@@ -1,25 +1,31 @@
 .feed-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 80px 15px 80px; /* Accounts for 60px fixed top-nav */
+  padding: 80px 15px 80px;
+  /* Accounts for 60px fixed top-nav */
 }
 
 @media (min-width: 768px) {
   .feed-container {
     margin-left: auto;
-    margin-right: max(80px, auto); /* Space for desktop right sidebar */
-    max-width: 600px; /* Keep container nice and centered without shifting wildly */
-    padding-top: 20px; /* Header is hidden on desktop */
+    margin-right: max(80px, auto);
+    /* Space for desktop right sidebar */
+    max-width: 600px;
+    /* Keep container nice and centered without shifting wildly */
+    padding-top: 20px;
+    /* Header is hidden on desktop */
   }
 }
 
 .feed-page {
-  padding-top: 80px; /* Accounts for 60px mobile top-nav + gap */
+  padding-top: 80px;
+  /* Accounts for 60px mobile top-nav + gap */
 }
 
 @media (min-width: 768px) {
   .feed-page {
-    padding-top: 20px; /* Top nav hidden on desktop */
+    padding-top: 20px;
+    /* Top nav hidden on desktop */
   }
 }
 
@@ -129,7 +135,7 @@
   left: 20px;
   right: 70px;
   color: white;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   z-index: 10;
 }
 
@@ -161,11 +167,11 @@
   .reels-container {
     padding-right: 80px;
   }
-  
+
   .reel-item {
     padding: 20px;
   }
-  
+
   .reel-video-wrapper {
     max-width: 450px;
     height: calc(100vh - 40px);
@@ -220,20 +226,23 @@
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
   color: white;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .blog-featured-card::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%);
   z-index: 1;
 }
 
 .blog-featured-card:hover {
   transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
 }
 
 .blog-featured-content {
@@ -261,12 +270,12 @@
   margin-bottom: 15px;
   color: white;
   line-height: 1.1;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .blog-featured-content .blog-excerpt {
   font-size: 1.15rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
   margin-bottom: 30px;
   max-width: 650px;
@@ -280,7 +289,7 @@
 }
 
 .blog-featured-card .blog-meta {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .blog-meta .author-mini {
@@ -293,7 +302,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
 }
 
 .blog-meta .spacer {
@@ -413,20 +422,20 @@
   .blogs-container {
     padding-top: 80px;
   }
-  
+
   .blog-featured-card {
     height: 350px;
   }
-  
+
   .blog-featured-content h3 {
     font-size: 1.6rem;
   }
-  
+
   .blog-list-item {
     flex-direction: column;
     padding: 16px;
   }
-  
+
   .blog-list-thumb {
     width: 100%;
     height: 180px;
@@ -438,8 +447,10 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 1000px; /* Force spread */
-  height: 85vh; /* Force height */
+  max-width: 1000px;
+  /* Force spread */
+  height: 85vh;
+  /* Force height */
   min-height: 500px;
   background: black;
   border-radius: 8px;
@@ -461,7 +472,8 @@
   width: 350px;
   min-width: 350px;
   background: white;
-  color: #0f172a; /* Ensure text is visible even if parent is dark mode */
+  color: #0f172a;
+  /* Ensure text is visible even if parent is dark mode */
   display: flex;
   flex-direction: column;
   border-left: 1px solid #dbdbdb;
@@ -469,7 +481,11 @@
 
 .pd-comments-section {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
+
 
 @media (min-width: 769px) {
   .pd-comments-section {
@@ -486,13 +502,14 @@
     height: 100dvh;
     border-radius: 0;
   }
-  
+
   .post-detail-media {
     flex: none;
-    height: 55vh; /* Adjusted mobile height */
+    height: 55vh;
+    /* Adjusted mobile height */
     width: 100%;
   }
-  
+
   .post-detail-info {
     flex: 1;
     width: 100%;

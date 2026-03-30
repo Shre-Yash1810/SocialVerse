@@ -181,9 +181,8 @@ const FeedPage: React.FC = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{post.author.name}</p>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>•</span>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatRelativeTime(post.createdAt)}</p>
                     </div>
+
                   </div>
               </div>
               <div className="post-image-container" onClick={() => setActiveDetailPost(post)} style={{ cursor: 'pointer' }}>
@@ -215,22 +214,32 @@ const FeedPage: React.FC = () => {
                 </div>
               </div>
               <div className="post-content">
-                <p><strong>{post.likes?.length || 0} likes</strong></p>
-                <p className="post-caption">
-                  <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    {post.author.userid}
-                    {post.author.isVerified && <VerifiedBadge size={12} />}
-                  </strong> <Linkify text={post.caption || ''} />
-                </p>
+                <p style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '8px' }}>{post.likes?.length || 0} likes</p>
+                
+                {post.caption && (
+                  <p className="post-caption" style={{ marginTop: 0 }}>
+                    <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginRight: '6px' }}>
+                      {post.author.userid}
+                      {post.author.isVerified && <VerifiedBadge size={12} />}
+                    </strong> 
+                    <Linkify text={post.caption} />
+                  </p>
+                )}
+
                 {post.commentsCount > 0 && (
                   <p 
-                    style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', marginTop: '8px' }}
+                    style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', marginTop: '6px' }}
                     onClick={() => handleComment(post._id)}
                   >
                     View all {post.commentsCount} comments
                   </p>
                 )}
+
+                <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '10px', letterSpacing: '0.4px' }}>
+                  {formatRelativeTime(post.createdAt)}
+                </p>
               </div>
+
             </article>
           ))
         )}

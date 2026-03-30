@@ -201,14 +201,35 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                    <Linkify text={localPost.caption} />
                 </p>
               )}
+              <p onClick={() => setShowMobileComments(true)} style={{ color: '#8e8e8e', fontSize: '0.85rem', marginTop: '6px', cursor: 'pointer' }}>
+                View all {comments.length} comments
+              </p>
+              <p style={{ fontSize: '0.65rem', color: '#8e8e8e', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                {formatRelativeTime(localPost.createdAt)}
+              </p>
             </div>
-            <p onClick={() => setShowMobileComments(true)} style={{ color: '#8e8e8e', fontSize: '0.85rem', marginTop: '6px', cursor: 'pointer' }}>
-              View all {comments.length} comments
-            </p>
+
           </div>
 
           <div className="pd-comments-section">
-            <div className="desktop-only">
+            <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column' }}>
+
+              {/* Author Caption as first comment */}
+              {localPost.caption && (
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                  <img src={localPost.author?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(localPost.author?.userid || 'U')}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <p style={{ fontSize: '0.9rem', fontWeight: 700 }}>{localPost.author?.userid}</p>
+                      {localPost.author?.isVerified && <VerifiedBadge size={12} />}
+                    </div>
+                    <p style={{ fontSize: '0.9rem', lineHeight: '1.5', marginTop: '2px' }}>
+                      <Linkify text={localPost.caption} />
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {comments.map(comment => (
                 <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                   <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid)}&background=random`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
@@ -226,6 +247,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
               ))}
             </div>
           </div>
+
 
           {/* Mobile Comments Overlay (Bottom Sheet) */}
           {showMobileComments && (
@@ -296,18 +318,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
                 <Bookmark size={26} className="icon-btn-action" />
               </div>
             </div>
-            <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '6px' }}>{localPost.likes?.length || 0} likes</p>
-            {localPost.caption && (
-              <p style={{ fontSize: '0.9rem', marginBottom: '8px', lineHeight: '1.4' }}>
-                <strong style={{ marginRight: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  @{localPost.author?.userid}
-                  {localPost.author?.isVerified && <VerifiedBadge size={12} />}
-                </strong>
-                <Linkify text={localPost.caption} />
-              </p>
-            )}
-            <p style={{ fontSize: '0.65rem', color: '#8e8e8e', marginTop: '4px', textTransform: 'uppercase' }}>{formatRelativeTime(localPost.createdAt)}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.85rem', color: '#262626', margin: 0 }}>{localPost.likes?.length || 0} likes</p>
+              <p style={{ fontSize: '0.65rem', color: '#8e8e8e', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>{formatRelativeTime(localPost.createdAt)}</p>
+            </div>
           </div>
+
+
+
 
           <form onSubmit={handleAddComment} className="desktop-only" style={{ padding: '12px 16px', borderTop: '1px solid #efefef', display: 'flex', gap: '12px' }}>
             <input
