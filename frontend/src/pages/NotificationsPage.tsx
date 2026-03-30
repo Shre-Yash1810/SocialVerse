@@ -4,18 +4,24 @@ import { Bell, Heart, MessageCircle, UserPlus, Hand, AtSign } from 'lucide-react
 import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 import VerifiedBadge from '../components/VerifiedBadge';
+import { useNotifications } from '../context/NotificationContext';
 import '../styles/Feed.css';
 
 const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { clearUnreadCount } = useNotifications();
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const res = await api.get('/notifications');
         setNotifications(res.data);
+        
+        // Mark all as read when page is opened
+        await api.put('/notifications/read-all');
+        clearUnreadCount();
       } catch (err) {
         console.error('Failed to fetch notifications', err);
       } finally {
@@ -23,7 +29,7 @@ const NotificationsPage: React.FC = () => {
       }
     };
     fetchNotifications();
-  }, []);
+  }, [clearUnreadCount]);
 
   const markAsRead = async (id: string) => {
     try {

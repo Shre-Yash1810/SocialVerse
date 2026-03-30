@@ -42,3 +42,35 @@ export const markAsRead = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+export const getUnreadCount = async (req: Request, res: Response) => {
+  if (isMockMode()) {
+    return res.json({ count: 1 });
+  }
+
+  try {
+    const count = await Notification.countDocuments({
+      recipient: (req as any).user._id,
+      isRead: false
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const markAllAsRead = async (req: Request, res: Response) => {
+  if (isMockMode()) {
+    return res.json({ message: 'All notifications marked as read (Mock Mode)' });
+  }
+
+  try {
+    await Notification.updateMany(
+      { recipient: (req as any).user._id, isRead: false },
+      { isRead: true }
+    );
+    res.json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};

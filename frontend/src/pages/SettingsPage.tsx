@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
-import { Navigation, Shield, FileText, ChevronRight, LogOut, Info, Lock, ChevronLeft, UserX } from 'lucide-react';
+import { Navigation, Shield, FileText, ChevronRight, LogOut, Info, Lock, ChevronLeft, UserX, MessageSquare, Send, AlertTriangle } from 'lucide-react';
+
 import api from '../services/api';
 import '../styles/Settings.css';
 
@@ -9,8 +10,9 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'main' | 'privacy' | 'terms' | 'blocked' | 'account' | 'security' | 'about' | 'admin_rights'>('main');
-  
+  const [activeView, setActiveView] = useState<'main' | 'privacy' | 'terms' | 'blocked' | 'account' | 'security' | 'about' | 'admin_rights' | 'feedback'>('main');
+
+
   const [nearbyEnabled, setNearbyEnabled] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
@@ -81,7 +83,7 @@ const SettingsPage: React.FC = () => {
         <button className="back-btn" onClick={() => navigate('/profile')}><ChevronLeft size={24} /></button>
         <h2>Settings</h2>
       </div>
-      
+
       <div className="settings-page-body">
         <div className="settings-section">
           <div className="settings-section-title">Account</div>
@@ -116,10 +118,10 @@ const SettingsPage: React.FC = () => {
             </div>
             <div className="settings-item-right">
               <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  checked={nearbyEnabled} 
-                  onChange={handleToggleNearby} 
+                <input
+                  type="checkbox"
+                  checked={nearbyEnabled}
+                  onChange={handleToggleNearby}
                   disabled={isUpdating}
                 />
                 <span className="slider"></span>
@@ -169,10 +171,25 @@ const SettingsPage: React.FC = () => {
           )}
         </div>
 
+        <div className="settings-section">
+          <div className="settings-section-title">Support & Feedback</div>
+          <div className="settings-item" onClick={() => setActiveView('feedback')}>
+            <div className="settings-item-left">
+              <MessageSquare size={20} className="settings-item-icon" style={{ color: '#ec4899' }} />
+              <div>
+                <div style={{ fontWeight: 500 }}>Feedback & Issues</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Tell us what you think or report a bug</div>
+              </div>
+            </div>
+            <div className="settings-item-right"><ChevronRight size={20} /></div>
+          </div>
+        </div>
+
         <button className="logout-btn-page" onClick={handleLogout}>
           <LogOut size={20} />
           Log Out
         </button>
+
       </div>
     </>
   );
@@ -219,7 +236,7 @@ const SettingsPage: React.FC = () => {
       <div className="settings-page-body legal-page-content">
         <h3>1. Data Collection</h3>
         <p>At SocialVerse, we believe your data belongs to you. We only collect the necessary information required to provide you with a seamless and connective experience. This includes basic profile details, interactions, and real-time location (only when Nearby Share is actively enabled).</p>
-        
+
         <h3>2. Usage of Information</h3>
         <p>Your information is utilized strictly to curate your feed, connect you with adjacent peers through our discovery features, and maintain the integrity of our platform. We do not sell your personal data to third-party data brokers.</p>
 
@@ -228,9 +245,9 @@ const SettingsPage: React.FC = () => {
 
         <h3>4. Security Measures</h3>
         <p>SocialVerse employs industry-standard encryption protocols to safeguard your personal messages (VerseChat) and credential data against unauthorized access. We continually monitor our infrastructure to ensure the highest tier of data security.</p>
-        
+
         <div className="legal-footer">
-          Last Updated: March 2026<br/>
+          Last Updated: March 2026<br />
           SocialVerse Inc.
         </div>
       </div>
@@ -257,7 +274,7 @@ const SettingsPage: React.FC = () => {
         <p>SocialVerse is provided "as is". We strive for 100% uptime, but make no guarantees regarding uninterrupted service. We are not liable for any data loss, damages, or distress arising from platform use.</p>
 
         <div className="legal-footer">
-          Last Updated: March 2026<br/>
+          Last Updated: March 2026<br />
           SocialVerse Inc.
         </div>
       </div>
@@ -350,21 +367,21 @@ const SettingsPage: React.FC = () => {
       <div className="settings-page-body legal-page-content">
         <h3>Our Mission</h3>
         <p>SocialVerse was founded with a singular, unyielding vision: to redefine digital connectivity by putting authentic human interaction first. In a world inundated with noisy algorithms and endless doom-scrolling, SocialVerse aims to be a sanctuary of meaningful connections, blending the comfort of intimate communication with the thrill of global discovery.</p>
-        
+
         <h3>The Ecosystem</h3>
         <p>Our platform isn't just an app; it is a living ecosystem designed to adapt to how you naturally want to socialize:</p>
         <p><strong>Posts & Bytes:</strong> Share your best moments instantly. Whether through stunning imagery or short, engaging video 'Bytes', you have the creative tools to express yourself vividly.</p>
         <p><strong>Blogs:</strong> For when an image isn't enough, our integrated blogging platform allows you to narrate your stories, share your expertise, and connect with a community that loves to read.</p>
         <p><strong>VerseChat:</strong> Real-time, encrypted messaging ensures your private conversations remain exactly that—private. Connect seamlessly with friends or groups without ever leaving the platform.</p>
         <p><strong>Nearby Discovery:</strong> A revolutionary feature bridging the digital and physical worlds. Find and connect with active SocialVerse members in your immediate vicinity, sparking spontaneous interactions and new friendships in your local community.</p>
-        
+
         <h3>Our Promise to You</h3>
         <p>We are relentlessly committed to a premium, minimalistic design that prioritizes your experience over our metrics. We believe in high-fidelity aesthetics, absolute data privacy, and giving you absolute control over your digital footprint.</p>
-        
+
         <p>Welcome to the future of connection. Welcome to SocialVerse.</p>
 
         <div className="legal-footer">
-          Version 1.0.0<br/>
+          Version 1.0.0<br />
           Built with passion by the SocialVerse Team
         </div>
       </div>
@@ -393,8 +410,8 @@ const SettingsPage: React.FC = () => {
         <div style={{ marginTop: '30px', padding: '20px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
           <h4 style={{ margin: '0 0 10px 0', color: '#d97706' }}>Administrative Tools</h4>
           <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>As an authorized member, you can access the central management console to oversee platform metrics and user accounts.</p>
-          <button 
-            className="action-btn-primary" 
+          <button
+            className="action-btn-primary"
             style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f59e0b', color: 'white', fontWeight: 600 }}
             onClick={() => navigate('/admin')}
           >
@@ -403,12 +420,129 @@ const SettingsPage: React.FC = () => {
         </div>
 
         <div className="legal-footer">
-          SocialVerse Administrative Board<br/>
+          SocialVerse Administrative Board<br />
           Ratified: March 2026
         </div>
       </div>
     </>
   );
+
+  interface FeedbackViewProps {
+    onBack: () => void;
+  }
+
+  const FeedbackView: React.FC<FeedbackViewProps> = ({ onBack }) => {
+    const [type, setType] = useState<'Feedback' | 'Issue'>('Feedback');
+    const [content, setContent] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!content.trim()) return;
+
+      setIsSubmitting(true);
+      try {
+        await api.post('/feedback', { type, content });
+        setSubmitted(true);
+        setContent('');
+      } catch (err) {
+        console.error('Failed to submit feedback', err);
+        alert('Failed to submit feedback. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    if (submitted) {
+      return (
+        <div className="feedback-view-container">
+          <div className="feedback-success-card animate-fade-in">
+            <div className="success-circle">
+              <Send size={36} />
+            </div>
+            <h3 className="success-title">Message Received</h3>
+            <p className="success-text">
+              Your {type.toLowerCase()} has been sent to our core team. We appreciate your contribution to SocialVerse!
+            </p>
+            <button
+              className="submit-feedback-btn"
+              onClick={onBack}
+            >
+              Back to Settings
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="feedback-view-container">
+        <div className="settings-page-header" style={{ position: 'relative', background: 'transparent', border: 'none', padding: '0 0 20px 0' }}>
+          <button className="back-btn" onClick={onBack}><ChevronLeft size={24} /></button>
+          <h2 style={{ marginRight: '40px' }}>Feedback & Support</h2>
+        </div>
+
+        <div className="feedback-intro">
+          <p>Help us improve SocialVerse. Whether it's a stellar idea or a frustrating bug, your voice directly shapes our evolution.</p>
+        </div>
+
+        <div className="feedback-card-form">
+          <div className="feedback-type-toggle">
+            <button
+              type="button"
+              className={`type-toggle-btn ${type === 'Feedback' ? 'active' : ''}`}
+              onClick={() => setType('Feedback')}
+            >
+              <MessageSquare size={18} />
+              Feedback
+            </button>
+            <button
+              type="button"
+              className={`type-toggle-btn ${type === 'Issue' ? 'active issue' : ''}`}
+              onClick={() => setType('Issue')}
+            >
+              <AlertTriangle size={18} />
+              Report Issue
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">
+                {type === 'Feedback' ? 'Your Suggestion' : 'Issue Description'}
+              </label>
+              <textarea
+                className="feedback-textarea"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={type === 'Feedback' ? "What could we do better?" : "Describe what happened..."}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="submit-feedback-btn"
+              disabled={isSubmitting || !content.trim()}
+            >
+              {isSubmitting ? 'Sending...' : 'Send to Team'}
+              {!isSubmitting && <Send size={18} />}
+            </button>
+          </form>
+        </div>
+
+        <div className="trust-footer">
+          <Shield size={20} className="trust-icon" />
+          <p>
+            <strong>Founder's Promise:</strong> Every single report is reviewed by our core development team. We take your experience seriously and strive for a improved SocialVerse.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+
 
   return (
     <div className="page-wrapper animate-fade-in">
@@ -421,10 +555,13 @@ const SettingsPage: React.FC = () => {
         {activeView === 'security' && renderSecurityView()}
         {activeView === 'about' && renderAboutView()}
         {activeView === 'admin_rights' && renderAdminRightsView()}
+        {activeView === 'feedback' && <FeedbackView onBack={() => setActiveView('main')} />}
+
       </main>
       <BottomNav />
     </div>
   );
+
 };
 
 export default SettingsPage;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, BookOpen, MessageCircle, Bell, PlusSquare, User, Settings } from 'lucide-react';
 import logo from '../assets/logo/logo-light.png';
+import { useNotifications } from '../context/NotificationContext';
 import BytesIcon from './BytesIcon';
 import CreatePostModal from './CreatePostModal';
 
@@ -9,6 +10,7 @@ const RightSidebar: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
 
   if (location.pathname === '/auth') {
     return null;
@@ -42,7 +44,10 @@ const RightSidebar: React.FC = () => {
             <span className="sidebar-label">VerseChat</span>
           </NavLink>
           <NavLink to="/notifications" className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} title="Notifications">
-            <Bell size={26} />
+            <div className="icon-container">
+              <Bell size={26} />
+              {unreadCount > 0 && <span className="notification-dot" />}
+            </div>
             <span className="sidebar-label">Notifications</span>
           </NavLink>
           <div className="sidebar-item" title="Create" onClick={() => setIsCreateOpen(true)}>

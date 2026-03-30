@@ -132,6 +132,41 @@
   fill: #ff9500;
 }
 
+/* Notification Dot - Global Styles */
+.icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 10px;
+  height: 10px;
+  background-color: #0095f6; /* A vibrant blue */
+  border: 2px solid white;
+  border-radius: 50%;
+  z-index: 5;
+}
+
+.bottom-nav-item .notification-dot {
+  top: 0px;
+  right: -2px;
+}
+
+.icon-btn .notification-dot {
+  top: 2px;
+  right: 2px;
+}
+
+.sidebar-item .notification-dot {
+  top: 8px;
+  left: 32px;
+}
+
 @media (min-width: 768px) {
   .bottom-nav {
     display: none;
@@ -237,6 +272,11 @@
 
   .sidebar-item.active svg {
     stroke-width: 2.5px;
+  }
+
+  .sidebar-item .notification-dot {
+    top: 8px;
+    left: 32px;
   }
 
   .sidebar-label {

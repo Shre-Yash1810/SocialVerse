@@ -26,8 +26,14 @@ import {
   Zap,
   Menu,
   X,
-  Eye
+  Eye,
+  MessageSquare,
+  ClipboardList,
+  CheckCircle2,
+  Archive
 } from 'lucide-react';
+
+
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import logo from '../assets/logo/logo-light.png';
@@ -41,22 +47,27 @@ const AdminPanel: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'posts' | 'bytes' | 'blogs' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'posts' | 'bytes' | 'blogs' | 'reports' | 'feedback'>('overview');
+  const [activeFeedbackTab, setActiveFeedbackTab] = useState<'Queue' | 'Resolved' | 'Dismissed'>('Queue');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chartMounted, setChartMounted] = useState(false);
   const [activeProof, setActiveProof] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<any[]>([]);
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [meRes, statsRes, usersRes, postsRes, reportsRes] = await Promise.all([
+        const [meRes, statsRes, usersRes, postsRes, reportsRes, feedbackRes] = await Promise.all([
           api.get('/users/me'),
           api.get('/admin/stats'),
           api.get('/admin/users'),
           api.get('/admin/posts'),
-          api.get('/admin/reports')
+          api.get('/admin/reports'),
+          api.get('/feedback/admin')
         ]);
         
         setCurrentUser(meRes.data);
@@ -64,6 +75,8 @@ const AdminPanel: React.FC = () => {
         setUsers(usersRes.data);
         setPosts(postsRes.data);
         setReports(reportsRes.data);
+        setFeedback(feedbackRes.data);
+
         
         if (meRes.data.role === 'user') navigate('/feed');
         
@@ -155,6 +168,22 @@ const AdminPanel: React.FC = () => {
     } catch (err) { console.error('Report resolution failed', err); }
   };
 
+  const handleUpdateFeedbackStatus = async (id: string, status: string) => {
+    try {
+      await api.patch(`/feedback/admin/${id}`, { status });
+      setFeedback(prev => prev.map(f => f._id === id ? { ...f, status } : f));
+    } catch (err) { console.error('Feedback status update failed', err); }
+  };
+
+  const handleDeleteFeedback = async (id: string) => {
+    if (!window.confirm('Delete this feedback?')) return;
+    try {
+      await api.delete(`/feedback/admin/${id}`);
+      setFeedback(prev => prev.filter(f => f._id !== id));
+    } catch (err) { console.error('Feedback deletion failed', err); }
+  };
+
+
   // --- Search & Filtering ---
   const filteredUsers = useMemo(() => 
     users.filter(u => u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || u.userid?.toLowerCase().includes(searchQuery.toLowerCase())),
@@ -232,8 +261,10 @@ const AdminPanel: React.FC = () => {
             { id: 'posts', icon: ImageIcon, label: 'Feed Posts' },
             { id: 'bytes', icon: Video, label: 'Short Bytes' },
             { id: 'blogs', icon: FileText, label: 'Blog Articles' },
-            { id: 'reports', icon: ShieldCheck, label: 'Moderation Hub' }
+            { id: 'reports', icon: ShieldCheck, label: 'Moderation Hub' },
+            { id: 'feedback', icon: MessageSquare, label: 'Feedback & Support' }
           ].map(tab => (
+
             <button key={tab.id} className={`nav-link ${activeTab === tab.id ? 'active' : ''}`} onClick={() => setActiveTab(tab.id as any)}>
               <tab.icon size={18} />
               <span>{tab.label}</span>
@@ -319,7 +350,19 @@ const AdminPanel: React.FC = () => {
                     </div>
                     <span className="m-subtext">Pending moderation flags</span>
                   </div>
+
+                  <div className="metric-card" style={{ borderLeft: '4px solid #ec4899' }}>
+                    <span className="m-label">Platform Feedback</span>
+                    <div className="m-value-wrap">
+                      <span className="m-value">{stats.feedbackCount || 0}</span>
+                      <span className={`m-trend ${stats.feedbackCount > 3 ? 'down' : 'up'}`} style={{ fontSize: '10px' }}>
+                        {stats.feedbackCount > 0 ? 'Action Reqd' : 'No issues'}
+                      </span>
+                    </div>
+                    <span className="m-subtext">Unresolved user reports</span>
+                  </div>
                 </section>
+
 
                 <div className="dashboard-sub-grid">
                   <div className="sub-panel chart-panel">
@@ -505,7 +548,7 @@ const AdminPanel: React.FC = () => {
                             <img src={user.profilePic || logo} alt="" className="ucc-img" />
                             <div className="ucc-info">
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span className="ucc-name">{user.userid}</span>
+                                <span className="hq-handle">{user.userid}</span>
                                 {user.isVerified && (
                                   <svg width="14" height="14" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.4))' }}>
                                     <path d="M50 5 L64 15 L80 15 L85 31 L97 43 L92 59 L97 75 L85 87 L80 85 L64 97 L50 85 L36 97 L20 85 L15 87 L3 75 L8 59 L3 43 L15 31 L20 15 L36 15 Z" fill="#3b82f6" />
@@ -585,7 +628,7 @@ const AdminPanel: React.FC = () => {
                         </span>
                       </div>
                       <div className="post-card-footer">
-                        <span style={{ fontSize: '0.75rem', color: 'var(--hq-text-dim)', fontWeight: 500 }}>@{post.author?.userid}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--hq-text-dim)', fontWeight: 500 }}>{post.author?.userid}</span>
                         <button className="action-btn-red" onClick={() => handleDeletePost(post._id)}>
                           <Trash2 size={14} />
                         </button>
@@ -608,7 +651,8 @@ const AdminPanel: React.FC = () => {
                         <div className="rc-indicator" style={{ background: '#6366f1' }}></div>
                         <div className="rc-content">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span className="rc-target" style={{ fontWeight: 600 }}>@{r.target?.userid || 'Target Node'}</span>
+                            <span className="rc-target" style={{ fontWeight: 600 }}>{r.target?.userid || 'Target Node'}</span>
+
                             <button 
                               onClick={() => window.open(`/profile/${r.target?.userid}`, '_blank')}
                               style={{ background: 'none', border: 'none', color: 'var(--hq-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}
@@ -644,7 +688,8 @@ const AdminPanel: React.FC = () => {
                         <div className="rc-content">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                             <span className="rc-badge" style={{ fontSize: '10px', padding: '2px 6px' }}>{r.targetType}</span>
-                            <span className="rc-target">@{r.target?.author?.userid || 'Unknown'}</span>
+                            <span className="post-author-handle">{r.target?.author?.userid || 'Unknown'}</span>
+
                             <button 
                               onClick={() => {
                                 let path = '/feed';
@@ -695,7 +740,8 @@ const AdminPanel: React.FC = () => {
                       <tbody>
                         {reports.filter(r => r.status !== 'Pending').slice(0, 10).map(r => (
                           <tr key={r._id}>
-                            <td>@{r.target?.userid || r.target?.author?.userid || 'Node'}</td>
+                            <td>{r.target?.userid || r.target?.author?.userid || 'Node'}</td>
+
                             <td>{r.targetType}</td>
                             <td title={r.reason}>
                               {r.reason?.substring(0, 30)}...
@@ -708,11 +754,12 @@ const AdminPanel: React.FC = () => {
                                 </button>
                               )}
                             </td>
-                            <td>
-                              <span className={`hq-status-pill sm ${r.status === 'Resolved' ? 'verified' : 'unverified'}`} style={{ fontSize: '10px' }}>
-                                {r.status === 'Resolved' ? 'CLEARED' : 'IGNORED'}
-                              </span>
-                            </td>
+                             <td>
+                               <span className={`hq-status-pill sm ${r.status === 'Resolved' ? 'verified' : 'unverified'}`} style={{ fontSize: '10px' }}>
+                                 {r.status === 'Resolved' && <CheckCircle2 size={10} style={{ marginRight: '4px' }} />}
+                                 {r.status === 'Resolved' ? 'CLEARED' : 'IGNORED'}
+                               </span>
+                             </td>
                             <td style={{ color: '#71717a' }}>{new Date(r.createdAt).toLocaleDateString()}</td>
                           </tr>
                         ))}
@@ -724,10 +771,13 @@ const AdminPanel: React.FC = () => {
                     {reports.filter(r => r.status !== 'Pending').slice(0, 10).map(r => (
                       <div key={r._id} className="history-card">
                         <div className="hc-header">
-                          <span className="hc-target">@{r.target?.userid || r.target?.author?.userid || 'Node'}</span>
+                          <span className="hc-target">{r.target?.userid || r.target?.author?.userid || 'Node'}</span>
+
                           <span className={`hq-status-pill sm ${r.status === 'Resolved' ? 'verified' : 'unverified'}`} style={{ fontSize: '10px' }}>
+                            {r.status === 'Resolved' && <CheckCircle2 size={10} style={{ marginRight: '4px' }} />}
                             {r.status === 'Resolved' ? 'CLEARED' : 'IGNORED'}
                           </span>
+
                         </div>
                         <div className="hc-body">
                            <div className="hc-meta">
@@ -750,9 +800,114 @@ const AdminPanel: React.FC = () => {
                 </div>
               </motion.div>
             )}
+            {activeTab === 'feedback' && (
+              <motion.div key="feedback" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="feedback-hub-header">
+                  <div className="feedback-tabs">
+                    <button 
+                      className={`fb-tab-btn ${activeFeedbackTab === 'Queue' ? 'active' : ''}`}
+                      onClick={() => setActiveFeedbackTab('Queue')}
+                    >
+                      Active Queue
+                      <span className="badge">{feedback.filter(f => f.status === 'Pending' || f.status === 'Sighted').length}</span>
+                    </button>
+                    <button 
+                      className={`fb-tab-btn ${activeFeedbackTab === 'Resolved' ? 'active' : ''}`}
+                      onClick={() => setActiveFeedbackTab('Resolved')}
+                    >
+                      Resolved
+                      <span className="badge">{feedback.filter(f => f.status === 'Resolved').length}</span>
+                    </button>
+                    <button 
+                      className={`fb-tab-btn ${activeFeedbackTab === 'Dismissed' ? 'active' : ''}`}
+                      onClick={() => setActiveFeedbackTab('Dismissed')}
+                    >
+                      Dismissed
+                      <span className="badge">{feedback.filter(f => f.status === 'Dismissed').length}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="feedback-list-inbox">
+                  {feedback
+                    .filter(fb => {
+                      if (activeFeedbackTab === 'Queue') return fb.status === 'Pending' || fb.status === 'Sighted';
+                      return fb.status === activeFeedbackTab;
+                    })
+                    .length === 0 ? (
+                    <div className="sub-panel" style={{ textAlign: 'center', padding: '60px' }}>
+                      <ClipboardList size={48} style={{ color: 'var(--hq-text-dim)', marginBottom: '16px' }} />
+                      <p style={{ color: 'var(--hq-text-dim)' }}>No feedback items in this {activeFeedbackTab.toLowerCase()} track.</p>
+                    </div>
+                  ) : (
+                    feedback
+                      .filter(fb => {
+                        if (activeFeedbackTab === 'Queue') return fb.status === 'Pending' || fb.status === 'Sighted';
+                        return fb.status === activeFeedbackTab;
+                      })
+                      .map(fb => (
+                        <div key={fb._id} className={`feedback-item-card status-${fb.status} ${fb.status !== 'Pending' && fb.status !== 'Sighted' ? 'completed' : ''}`}>
+                          <div className="fb-user-avatar">
+                            <img src={fb.user?.profilePic || logo} alt="" />
+                          </div>
+
+                          <div className="fb-main-content">
+                            <div className="fb-sender-info">
+                              <span className="fb-sender-name">{fb.user?.name || 'Anonymous User'}</span>
+                              <span className="fb-sender-handle">{fb.user?.userid || 'anonymous'}</span>
+                              <span className={`fb-type-pill ${fb.type}`}>{fb.type}</span>
+                            </div>
+                            <div className="fb-message-body">
+                              {fb.content}
+                            </div>
+                            <div className="fb-timestamp">
+                              {new Date(fb.createdAt).toLocaleDateString()} at {new Date(fb.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+
+                          <div className="fb-action-suite">
+                            {fb.status !== 'Resolved' && (
+                              <button 
+                                className={`fb-action-btn seen ${fb.status === 'Sighted' ? 'active' : ''}`} 
+                                title="Mark as Seen"
+                                onClick={() => handleUpdateFeedbackStatus(fb._id, 'Sighted')}
+                              >
+                                <Eye size={18} />
+                              </button>
+                            )}
+                            <button 
+                              className={`fb-action-btn resolve ${fb.status === 'Resolved' ? 'active' : ''}`} 
+                              title="Set Resolved"
+                              onClick={() => handleUpdateFeedbackStatus(fb._id, 'Resolved')}
+                            >
+                              <CheckCircle2 size={18} />
+                            </button>
+                            <button 
+                              className={`fb-action-btn dismiss ${fb.status === 'Dismissed' ? 'active' : ''}`} 
+                              title="Dismiss"
+                              onClick={() => handleUpdateFeedbackStatus(fb._id, 'Dismissed')}
+                            >
+                              <Archive size={18} />
+                            </button>
+                            <button 
+                              className="fb-action-btn delete" 
+                              title="Delete Permanently"
+                              onClick={() => handleDeleteFeedback(fb._id)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </motion.div>
+
+            )}
           </AnimatePresence>
         </div>
       </main>
+
       
       {activeProof && (
         <ProofViewerModal 

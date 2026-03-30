@@ -5,7 +5,9 @@ import Comment from '../models/Comment';
 import Report from '../models/Report';
 import Moment from '../models/Moment';
 import Chat from '../models/Chat';
+import Feedback from '../models/Feedback';
 import CloudinaryService from '../services/CloudinaryService';
+
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
@@ -45,6 +47,8 @@ export const getStats = async (req: Request, res: Response) => {
     const momentCount = await Moment.countDocuments();
     const chatCount = await Chat.countDocuments();
     const reportCount = await Report.countDocuments({ status: 'Pending' });
+    const feedbackCount = await Feedback.countDocuments({ status: 'Pending' });
+
     
     // Time periods
     const now = new Date();
@@ -128,7 +132,9 @@ export const getStats = async (req: Request, res: Response) => {
       activeUsers7d: totalActiveUsers,
       topUsers,
       hashtags,
+      feedbackCount,
       trendData
+
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });

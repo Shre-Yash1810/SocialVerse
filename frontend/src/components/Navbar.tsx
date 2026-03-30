@@ -2,6 +2,7 @@ import React from 'react';
 import logo from '../assets/logo/logo-light.png';
 import { Search, Bell, Settings, PlusSquare, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../context/NotificationContext';
 import '../styles/Navigation.css';
 
 interface NavbarProps {
@@ -13,6 +14,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = React.memo(({ mode = 'home', onCreateClick, onSettingsClick, onMoreClick }) => {
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
 
   return (
     <header className="top-nav">
@@ -31,7 +33,10 @@ const Navbar: React.FC<NavbarProps> = React.memo(({ mode = 'home', onCreateClick
               <Search size={22} />
             </button>
             <button className="icon-btn" title="Notifications" onClick={() => navigate('/notifications')}>
-              <Bell size={22} />
+              <div className="icon-container">
+                <Bell size={22} />
+                {unreadCount > 0 && <span className="notification-dot" />}
+              </div>
             </button>
           </>
         ) : mode === 'profile' ? (
