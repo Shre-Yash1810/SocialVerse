@@ -134,6 +134,7 @@ const NotificationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#1e293b', lineHeight: '1.4', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', marginRight: '4px' }}>
                         {notif.sender?.userid}
                         {notif.sender?.isVerified && <VerifiedBadge size={14} />}
