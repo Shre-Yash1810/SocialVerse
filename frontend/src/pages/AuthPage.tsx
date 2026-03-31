@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import Branding from '../components/Branding';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import '../styles/Auth.css';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useUser();
   const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -32,6 +34,7 @@ const AuthPage: React.FC = () => {
         localStorage.setItem('userid', res.data.userid);
         localStorage.setItem('db_id', res.data._id);
         localStorage.setItem('profilePic', res.data.profilePic || '');
+        await refreshUser();
         navigate('/profile');
       } else {
         // First step of signup (email/password)

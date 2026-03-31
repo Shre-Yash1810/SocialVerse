@@ -8,6 +8,8 @@ import { ByteProvider } from './context/ByteContext';
 import { UserProvider } from './context/UserContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { NavbarActionProvider } from './context/NavbarActionContext';
+import { SocketProvider } from './context/SocketContext';
+import { ChatProvider } from './context/ChatContext';
 import './index.css';
 
 // Lazy load pages
@@ -71,15 +73,19 @@ function AnimatedRoutes() {
 function App() {
   return (
     <UserProvider>
-      <NotificationProvider>
-        <ByteProvider>
-          <NavbarActionProvider>
-            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <AnimatedRoutes />
-            </Router>
-          </NavbarActionProvider>
-        </ByteProvider>
-      </NotificationProvider>
+      <SocketProvider>
+        <ChatProvider>
+          <NotificationProvider>
+            <ByteProvider>
+              <NavbarActionProvider>
+                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                  <AnimatedRoutes />
+                </Router>
+              </NavbarActionProvider>
+            </ByteProvider>
+          </NotificationProvider>
+        </ChatProvider>
+      </SocketProvider>
     </UserProvider>
   );
 }

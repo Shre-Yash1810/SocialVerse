@@ -52,7 +52,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
-    fetchUser();
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   return (

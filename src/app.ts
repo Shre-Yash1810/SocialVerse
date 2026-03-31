@@ -88,23 +88,44 @@ app.get('/', (req, res) => {
 
 // Error Logger Middleware removed
 
+import User from './models/User';
+
 // Socket.io connection
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-  console.log('Transport used:', socket.conn.transport.name);
+  let currentUserId: string | null = null;
 
-  socket.conn.on('upgrade', (transport) => {
-    console.log('Transport upgraded to:', transport.name);
-  });
-
-  socket.on('register', (userId: string) => {
+  socket.on('register', async (userId: string) => {
+    currentUserId = userId;
     console.log(`User ${userId} registering socket ${socket.id}`);
     registerUserSocket(userId, socket.id);
+    
+    // Update lastSeen on register
+    try {
+      await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+    } catch (err) {
+      console.error('Error updating lastSeen on register:', err);
+    }
   });
 
-  socket.on('disconnect', (reason) => {
+  socket.on('heartbeat', async (userId: string) => {
+    try {
+      await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+    } catch (err) {
+      // Silent fail for heartbeat
+    }
+  });
+
+  socket.on('disconnect', async (reason) => {
     removeUserSocket(socket.id);
     console.log('User disconnected:', socket.id, 'Reason:', reason);
+    
+    if (currentUserId) {
+      try {
+        await User.findByIdAndUpdate(currentUserId, { lastSeen: new Date() });
+      } catch (err) {
+        console.error('Error updating lastSeen on disconnect:', err);
+      }
+    }
   });
 });
 

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User as UserIcon, Edit2, Grid, Film, FileText, Heart, MessageCircle, ChevronDown, Star
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import EditProfileModal from '../components/EditProfileModal';
 import CreatePostModal from '../components/CreatePostModal';
 import PostDetailModal from '../components/PostDetailModal';
@@ -21,34 +22,30 @@ import { BADGE_CONFIG } from '../utils/badges';
 import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 import '../styles/Profile.css';
 
-
-
 const ProfilePage: React.FC = () => {
   const { handle: urlHandle } = useParams<{ handle?: string }>();
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useUser();
+  const { setOnMoreClick, setOnCreateClick } = useNavbarAction();
+
   const [activeTab, setActiveTab] = useState('posts');
-  const [loading, setLoading] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activeDetailPost, setActiveDetailPost] = useState<any | null>(null);
   const [activeDetailBlog, setActiveDetailBlog] = useState<any | null>(null);
-  const [userPosts, setUserPosts] = useState<any[]>([]);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
   const [showXpBar, setShowXpBar] = useState(false);
-  const [memories, setMemories] = useState<any[]>([]);
   const [activeMemory, setActiveMemory] = useState(false);
   const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
 
-  const { user: currentUser } = useUser();
-  const { setOnMoreClick, setOnCreateClick } = useNavbarAction();
   const currentUserId = currentUser?.userid;
   const targetId = urlHandle || currentUserId;
   const isOwnProfile = !urlHandle || urlHandle === currentUserId;
 
+  // Sync Navbar Actions
   useEffect(() => {
     if (!isOwnProfile) {
       setOnMoreClick(() => () => setIsProfileOptionsOpen(true));
@@ -57,25 +54,23 @@ const ProfilePage: React.FC = () => {
       setOnMoreClick(null);
       setOnCreateClick(() => () => setIsCreateOpen(true));
     }
-    
     return () => {
       setOnMoreClick(null);
       setOnCreateClick(null);
     }
   }, [isOwnProfile, setOnMoreClick, setOnCreateClick]);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!targetId) return;
-
-      setLoading(true);
+  // Fetch Profile Data
+  const { data: user, isLoading: isProfileLoading } = useQuery({
+    queryKey: ['profile', targetId],
+    queryFn: async () => {
+      if (!targetId) return null;
       try {
-        const res = await api.get(`/users/profile/${targetId}`); 
-        setUser(res.data);
-        setIsFollowing(res.data.followers?.some((f: any) => f.userid === currentUserId) || false);
+        const res = await api.get(`/users/profile/${targetId}`);
+        return res.data;
       } catch (err) {
         console.error('Failed to fetch profile', err);
-        setUser({
+        return {
           name: 'SocialVerse User',
           userid: targetId,
           level: 1,
@@ -83,53 +78,71 @@ const ProfilePage: React.FC = () => {
           followingCount: 0,
           gender: 'Not specified',
           bio: 'Welcome to SocialVerse!',
-          profilePic: ''
-        });
-      } finally {
-        setLoading(false);
+          profilePic: '',
+          followers: []
+        };
       }
-    };
-    
-    const fetchUserPosts = async () => {
-      if (!targetId) return;
-      try {
-        const res = await api.get(`/posts/user/${targetId}`);
-        setUserPosts(res.data);
-      } catch (err) {
-        console.error('Failed to fetch user posts', err);
-      }
-    };
+    },
+    enabled: !!targetId,
+  });
 
-    const fetchMemories = async () => {
-      if (!targetId) return;
-      try {
-        const res = await api.get(`/moments/user/${targetId}/memories`);
-        setMemories(res.data);
-      } catch (err) {
-        console.error('Failed to fetch memories', err);
-      }
-    };
+  // Fetch User Posts
+  const { data: userPosts = [] } = useQuery({
+    queryKey: ['userPosts', targetId],
+    queryFn: async () => {
+      if (!targetId) return [];
+      const res = await api.get(`/posts/user/${targetId}`);
+      return res.data;
+    },
+    enabled: !!targetId,
+  });
 
-    fetchProfile();
-    fetchUserPosts();
-    fetchMemories();
-  }, [targetId, navigate, currentUserId]);
+  // Fetch Memories
+  const { data: memories = [] } = useQuery({
+    queryKey: ['memories', targetId],
+    queryFn: async () => {
+      if (!targetId) return [];
+      const res = await api.get(`/moments/user/${targetId}/memories`);
+      return res.data;
+    },
+    enabled: !!targetId,
+  });
 
-  const handleFollow = async () => {
-    if (!user?._id) return;
-    try {
+  // Follow Mutation
+  const followMutation = useMutation({
+    mutationFn: async ({ id, isFollowing }: { id: string, isFollowing: boolean }) => {
       if (isFollowing) {
-        await api.delete(`/users/unfollow/${user._id}`);
-        setUser({ ...user, followersCount: Math.max(0, user.followersCount - 1) });
+        await api.delete(`/users/unfollow/${id}`);
       } else {
-        await api.post(`/users/follow/${user._id}`);
-        setUser({ ...user, followersCount: user.followersCount + 1 });
+        await api.post(`/users/follow/${id}`);
       }
-      setIsFollowing(!isFollowing);
-    } catch (err) {
-      console.error('Failed to toggle follow status', err);
-    }
-  };
+    },
+    onMutate: async ({ id: _id, isFollowing }) => {
+      await queryClient.cancelQueries({ queryKey: ['profile', targetId] });
+      const previousProfile = queryClient.getQueryData(['profile', targetId]);
+
+      queryClient.setQueryData(['profile', targetId], (old: any) => {
+        if (!old) return old;
+        const newCount = isFollowing ? Math.max(0, old.followersCount - 1) : old.followersCount + 1;
+        const newFollowers = isFollowing 
+          ? old.followers?.filter((f: any) => f.userid !== currentUserId)
+          : [...(old.followers || []), { userid: currentUserId }];
+        return { ...old, followersCount: newCount, followers: newFollowers };
+      });
+
+      return { previousProfile };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousProfile) {
+        queryClient.setQueryData(['profile', targetId], context.previousProfile);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', targetId] });
+    },
+  });
+
+  const isFollowing = user?.followers?.some((f: any) => f.userid === currentUserId) || false;
 
   const handleStartChat = async () => {
     if (!user?._id) return;
@@ -144,7 +157,7 @@ const ProfilePage: React.FC = () => {
   const handleUpdateSelectedBadges = async (selected: string[]) => {
     try {
       await api.put('/users/profile', { selectedBadges: selected });
-      setUser({ ...user, selectedBadges: selected });
+      queryClient.setQueryData(['profile', targetId], (old: any) => ({ ...old, selectedBadges: selected }));
       setIsBadgesModalOpen(false);
     } catch (err) {
       console.error('Failed to update badges', err);
@@ -161,7 +174,7 @@ const ProfilePage: React.FC = () => {
     return { current, target, percentage, remaining };
   };
 
-  const filteredPosts = userPosts.filter(post => {
+  const filteredPosts = userPosts.filter((post: any) => {
     if (activeTab === 'posts') return post.type === 'Image';
     if (activeTab === 'bytes') return post.type === 'Video';
     if (activeTab === 'blogs') return post.type === 'Blog';
@@ -170,14 +183,13 @@ const ProfilePage: React.FC = () => {
 
   const isPrivateAndNotFollowing = user?.isPrivate && !isOwnProfile && !isFollowing;
 
-  if (loading) return <ProfileSkeleton />;
+  if (isProfileLoading && !user) return <ProfileSkeleton />;
+  if (!user) return null;
 
   return (
     <>
       <div className={`profile-wrapper ${(isPreviewOpen || isEditOpen || activeDetailPost || activeDetailBlog) ? 'overflow-hidden' : ''}`}>
-        
         <main className="profile-container">
-        {/* Header Section */}
         <section className="profile-header">
           <div className="profile-action-left">
             {isOwnProfile ? (
@@ -189,7 +201,7 @@ const ProfilePage: React.FC = () => {
               <div className="profile-actions-other">
                 <button 
                   className={isFollowing ? 'glass-btn' : 'btn-primary'} 
-                  onClick={handleFollow}
+                  onClick={() => followMutation.mutate({ id: user._id, isFollowing })}
                   style={{ padding: '8px 20px', borderRadius: '8px' }}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
@@ -229,7 +241,6 @@ const ProfilePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Identity Section */}
         <section className="profile-identity">
           <div className="name-badge-row">
             <div 
@@ -297,7 +308,6 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
-          {/* Minimalist Professional Achievement Badges */}
           {user.badges && user.badges.length > 0 && (
             <div className="achievement-badges-container animate-fade-in">
               {(() => {
@@ -362,29 +372,16 @@ const ProfilePage: React.FC = () => {
           )}
         </section>
 
-        {/* Content Section (Instagram style) */}
         <section className="profile-content">
           <div className="content-tabs">
-            <button 
-              className={`tab-item ${activeTab === 'posts' ? 'active' : ''}`}
-              onClick={() => setActiveTab('posts')}
-            >
-              <Grid size={18} />
-              <span>Posts</span>
+            <button className={`tab-item ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>
+              <Grid size={18} /> <span>Posts</span>
             </button>
-            <button 
-              className={`tab-item ${activeTab === 'bytes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('bytes')}
-            >
-              <Film size={18} />
-              <span>Bytes</span>
+            <button className={`tab-item ${activeTab === 'bytes' ? 'active' : ''}`} onClick={() => setActiveTab('bytes')}>
+              <Film size={18} /> <span>Bytes</span>
             </button>
-            <button 
-              className={`tab-item ${activeTab === 'blogs' ? 'active' : ''}`}
-              onClick={() => setActiveTab('blogs')}
-            >
-              <FileText size={18} />
-              <span>Blogs</span>
+            <button className={`tab-item ${activeTab === 'blogs' ? 'active' : ''}`} onClick={() => setActiveTab('blogs')}>
+              <FileText size={18} /> <span>Blogs</span>
             </button>
           </div>
 
@@ -399,7 +396,7 @@ const ProfilePage: React.FC = () => {
               </div>
             ) : (
               <>
-                {filteredPosts.map((post) => (
+                {filteredPosts.map((post: any) => (
                     <div 
                       key={post._id} 
                       className="post-skeleton"
@@ -439,10 +436,9 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
         </section>
-      </main>
+        </main>
       </div>
 
-      {/* Modals outside the layout wrapper to prevent stacking context clipping */}
       {isPreviewOpen && (
         <div className="pic-preview-modal animate-fade-in" onClick={() => setIsPreviewOpen(false)}>
           <div className="preview-content animate-scale">
@@ -452,78 +448,36 @@ const ProfilePage: React.FC = () => {
       )}
 
       {isEditOpen && (
-        <EditProfileModal 
-          user={user} 
-          onClose={() => setIsEditOpen(false)} 
-          onUpdate={(updatedUser) => setUser(updatedUser)} 
-        />
+        <EditProfileModal user={user} onClose={() => setIsEditOpen(false)} onUpdate={(updatedUser) => queryClient.setQueryData(['profile', targetId], updatedUser)} />
       )}
       {isCreateOpen && (
-        <CreatePostModal 
-          onClose={() => setIsCreateOpen(false)} 
-          onPostCreated={() => {
-            setIsCreateOpen(false);
-            navigate(0);
-          }} 
-        />
+        <CreatePostModal onClose={() => setIsCreateOpen(false)} onPostCreated={() => { setIsCreateOpen(false); queryClient.invalidateQueries({ queryKey: ['userPosts', targetId] }); }} />
       )}
       {activeDetailPost && (
         <PostDetailModal 
           post={activeDetailPost} 
           onClose={() => setActiveDetailPost(null)} 
-          onUpdate={() => {}} // Could refresh posts here
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['userPosts', targetId] })}
           onNext={() => {
-            const idx = filteredPosts.findIndex(p => p._id === activeDetailPost._id);
+            const idx = filteredPosts.findIndex((p: any) => p._id === activeDetailPost._id);
             if (idx < filteredPosts.length - 1) setActiveDetailPost(filteredPosts[idx + 1]);
           }}
           onPrev={() => {
-            const idx = filteredPosts.findIndex(p => p._id === activeDetailPost._id);
+            const idx = filteredPosts.findIndex((p: any) => p._id === activeDetailPost._id);
             if (idx > 0) setActiveDetailPost(filteredPosts[idx - 1]);
           }}
-          hasNext={filteredPosts.findIndex(p => p._id === activeDetailPost._id) < filteredPosts.length - 1}
-          hasPrev={filteredPosts.findIndex(p => p._id === activeDetailPost._id) > 0}
+          hasNext={filteredPosts.findIndex((p: any) => p._id === activeDetailPost._id) < filteredPosts.length - 1}
+          hasPrev={filteredPosts.findIndex((p: any) => p._id === activeDetailPost._id) > 0}
         />
       )}
-      {activeDetailBlog && (
-        <BlogDetailModal 
-          post={activeDetailBlog} 
-          onClose={() => setActiveDetailBlog(null)} 
-        />
-      )}
-      {followListType && (
-        <FollowListModal 
-          userHandle={user.userid} 
-          type={followListType} 
-          onClose={() => setFollowListType(null)} 
-        />
-      )}
-      {isProfileOptionsOpen && createPortal(
-        <ProfileOptionsModal 
-          user={user} 
-          onClose={() => setIsProfileOptionsOpen(false)} 
-          onBlockSuccess={() => navigate('/feed')}
-        />,
-        document.body
-      )}
-      {activeMemory && memories.length > 0 && (
-        <MomentViewerModal 
-          momentGroup={{ user, moments: memories }}
-          isMemoryMode={true}
-          onClose={() => setActiveMemory(false)}
-        />
-      )}
-      {isBadgesModalOpen && createPortal(
-        <AllBadgesModal
-          earnedBadges={user.badges || []}
-          initialSelected={(user.selectedBadges && user.selectedBadges.length > 0) ? user.selectedBadges : (user.badges || []).slice(0, 2)}
-          isOwnProfile={isOwnProfile}
-          onClose={() => setIsBadgesModalOpen(false)}
-          onSave={handleUpdateSelectedBadges}
-        />,
-        document.body
-      )}
+      {activeDetailBlog && <BlogDetailModal post={activeDetailBlog} onClose={() => setActiveDetailBlog(null)} />}
+      {followListType && <FollowListModal userHandle={user.userid} type={followListType} onClose={() => setFollowListType(null)} />}
+      {isProfileOptionsOpen && createPortal(<ProfileOptionsModal user={user} onClose={() => setIsProfileOptionsOpen(false)} onBlockSuccess={() => navigate('/feed')} />, document.body)}
+      {activeMemory && memories.length > 0 && <MomentViewerModal momentGroup={{ user, moments: memories }} isMemoryMode={true} onClose={() => setActiveMemory(false)} />}
+      {isBadgesModalOpen && createPortal(<AllBadgesModal earnedBadges={user.badges || []} initialSelected={(user.selectedBadges && user.selectedBadges.length > 0) ? user.selectedBadges : (user.badges || []).slice(0, 2)} isOwnProfile={isOwnProfile} onClose={() => setIsBadgesModalOpen(false)} onSave={handleUpdateSelectedBadges} />, document.body)}
     </>
   );
 };
 
 export default ProfilePage;
+;

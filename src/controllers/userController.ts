@@ -106,12 +106,14 @@ export const followUser = async (req: Request, res: Response) => {
       targetUser.followersCount += 1;
       await targetUser.save();
 
-      const notification = await Notification.create({
-        recipient: new mongoose.Types.ObjectId(targetId as string),
-        sender: userId,
-        type: 'FOLLOW'
-      });
-      sendRealTimeNotification(targetId as string, notification);
+      if (targetId !== userId.toString()) {
+        const notification = await Notification.create({
+          recipient: new mongoose.Types.ObjectId(targetId as string),
+          sender: userId,
+          type: 'FOLLOW'
+        });
+        sendRealTimeNotification(targetId as string, notification);
+      }
     }
 
     res.json({ message: 'Followed successfully' });
@@ -220,7 +222,12 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 };
 export const getMe = async (req: Request, res: Response) => {
-  const userId = (req as any).user._id;
+  const userId = (req as any).user?._id;
+
+  if (isMockMode()) {
+    return res.json((req as any).user);
+  }
+
   try {
     const user = await User.findById(userId).select('-password -blockedUsers');
     if (!user) return res.status(404).json({ message: 'User not found' });

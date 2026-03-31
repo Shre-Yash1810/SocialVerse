@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Send, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useUser } from '../context/UserContext';
 import { formatRelativeTime } from '../utils/timeUtils';
@@ -22,56 +23,91 @@ interface Post {
 
 interface CommentsModalProps {
   postId: string;
-  post?: Post; // Added optional post prop for caption display
+  post?: Post;
   onClose: () => void;
   onCommentAdded: () => void;
 }
 
 const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, onCommentAdded }) => {
   const { user } = useUser();
-  const [comments, setComments] = useState<Comment[]>([]);
+  const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
   const currentUserId = user?.userid;
 
-  const fetchComments = async () => {
-    try {
+  // Fetch Comments
+  const { data: comments = [], isLoading } = useQuery<Comment[]>({
+    queryKey: ['comments', postId],
+    queryFn: async () => {
       const res = await api.get(`/posts/${postId}/comments`);
-      setComments(res.data);
-    } catch (err) {
-      console.error('Failed to fetch comments', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data;
+    },
+    enabled: !!postId,
+  });
 
-  useEffect(() => {
-    fetchComments();
-  }, [postId]);
+  // Add Comment Mutation (Optimistic)
+  const addMutation = useMutation({
+    mutationFn: (text: string) => api.post('/comments', { postId, text }),
+    onMutate: async (text) => {
+      await queryClient.cancelQueries({ queryKey: ['comments', postId] });
+      const previousComments = queryClient.getQueryData<Comment[]>(['comments', postId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+      const tempComment: Comment = {
+        _id: `temp-${Date.now()}`,
+        author: {
+          userid: user?.userid || '',
+          name: user?.name || '',
+          profilePic: user?.profilePic || '',
+        },
+        text,
+        createdAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(['comments', postId], (old: Comment[] | undefined) => [tempComment, ...(old || [])]);
+      setNewComment('');
+      return { previousComments };
+    },
+    onError: (_err, _text, context) => {
+      if (context?.previousComments) {
+        queryClient.setQueryData(['comments', postId], context.previousComments);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      onCommentAdded(); // To update the feed count
+    },
+  });
+
+  // Delete Comment Mutation (Optimistic)
+  const deleteMutation = useMutation({
+    mutationFn: (commentId: string) => api.delete(`/comments/${commentId}`),
+    onMutate: async (commentId) => {
+      await queryClient.cancelQueries({ queryKey: ['comments', postId] });
+      const previousComments = queryClient.getQueryData<Comment[]>(['comments', postId]);
+      queryClient.setQueryData(['comments', postId], (old: Comment[] | undefined) => 
+        old?.filter(c => c._id !== commentId)
+      );
+      return { previousComments };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousComments) {
+        queryClient.setQueryData(['comments', postId], context.previousComments);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      onCommentAdded();
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-
-    try {
-      await api.post('/comments', { postId, text: newComment });
-      setNewComment('');
-      fetchComments();
-      onCommentAdded();
-    } catch (err) {
-      console.error('Failed to post comment', err);
-    }
+    addMutation.mutate(newComment);
   };
 
-  const handleDelete = async (commentId: string) => {
+  const handleDelete = (commentId: string) => {
     if (!window.confirm('Delete this comment?')) return;
-    try {
-      await api.delete(`/comments/${commentId}`);
-      fetchComments();
-      onCommentAdded();
-    } catch (err) {
-      console.error('Failed to delete comment', err);
-    }
+    deleteMutation.mutate(commentId);
   };
 
   return (
@@ -83,11 +119,10 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
         </div>
         
         <div className="edit-form" style={{ flex: 1, overflowY: 'auto', padding: '15px' }}>
-          {loading ? (
+          {isLoading && comments.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading comments...</p>
           ) : (
             <>
-              {/* Post Caption as the first "comment" */}
               {post && post.caption && (
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' }}>
                   <img src={post.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
@@ -108,7 +143,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '20px' }}>No comments yet. Be the first!</p>
               ) : (
                 comments.map(comment => (
-                  <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-start' }}>
+                  <div key={comment._id} style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-start', opacity: comment._id.startsWith('temp-') ? 0.6 : 1 }}>
                     <img src={comment.author.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author.userid || comment.author.name)}&background=random`} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -140,9 +175,10 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ postId, post, onClose, on
             placeholder="Add a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            disabled={addMutation.isPending}
             style={{ flex: 1, padding: '10px 15px', borderRadius: '20px', border: '1px solid var(--border)', fontSize: '0.9rem' }}
           />
-          <button type="submit" className="icon-btn" style={{ color: 'var(--primary)' }}>
+          <button type="submit" className="icon-btn" style={{ color: 'var(--primary)' }} disabled={!newComment.trim() || addMutation.isPending}>
             <Send size={20} />
           </button>
         </form>

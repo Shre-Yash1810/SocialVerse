@@ -22,7 +22,10 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('userid');
       localStorage.removeItem('db_id');
-      window.location.href = '/auth';
+      // Only redirect if we're not already on the auth page to avoid infinite loops
+      if (window.location.pathname !== '/auth' && window.location.pathname !== '/onboarding') {
+        window.location.href = '/auth';
+      }
     }
     return Promise.reject(error);
   }

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Response, Request, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import User, { IUser } from '../models/User';
 
 export const generateToken = (id: string): string => {
@@ -18,12 +19,19 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, secret) as { id: string };
 
-      if (decoded.id.startsWith('mock_')) {
+      if (decoded.id.startsWith('mock_') || mongoose.connection.readyState !== 1) {
         (req as any).user = {
-          _id: decoded.id,
+          _id: decoded.id || 'mock_user_123',
           name: 'Mock User',
           email: 'mock@example.com',
-          userid: 'mock_user'
+          userid: 'mock_user',
+          role: 'user',
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          xp: 0,
+          level: 1,
+          following: []
         };
       } else {
         (req as any).user = await User.findById(decoded.id).select('-password');

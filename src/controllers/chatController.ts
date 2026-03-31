@@ -483,3 +483,37 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+export const getUnreadChatCount = async (req: Request, res: Response) => {
+  if (isMockMode()) {
+    return res.json({ count: 1 });
+  }
+
+  try {
+    const userId = (req as any).user._id;
+    
+    // Find all chats user is part of
+    const chats = await Chat.find({ participants: userId }).select('_id');
+    const chatIds = chats.map(c => c._id);
+
+    if (chatIds.length === 0) {
+      return res.json({ count: 0 });
+    }
+
+    // Count messages in these chats that:
+    // 1. Are NOT sent by the user
+    // 2. Are NOT read
+    // 3. Are NOT deleted
+    const unreadCount = await Message.countDocuments({
+      chat: { $in: chatIds },
+      sender: { $ne: userId },
+      isRead: false,
+      isDeleted: false
+    });
+
+    res.json({ count: unreadCount });
+  } catch (error) {
+    console.error('Get unread chat count error:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};

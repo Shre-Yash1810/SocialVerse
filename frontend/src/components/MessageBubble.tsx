@@ -11,14 +11,13 @@ interface MessageBubbleProps {
   handleLongPressStart: (id: string) => void;
   handleLongPressEnd: () => void;
   handleUnsendMessage: (id: string) => void;
-  setSelectedMessageId: (id: string | null) => void;
   setActiveSharedContent: (content: any) => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
   msg, isMe, selectedMessageId, hoveredMessageId,
   setHoveredMessageId, handleLongPressStart, handleLongPressEnd,
-  handleUnsendMessage, setSelectedMessageId, setActiveSharedContent
+  handleUnsendMessage, setActiveSharedContent
 }) => {
   return (
     <div style={{ marginLeft: isMe ? 'auto' : '0', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', gap: '8px', marginBottom: '12px', width: 'fit-content' }}>
@@ -75,7 +74,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             }}
           >
             <div
-              onClick={(e) => { e.stopPropagation(); if (window.confirm('Unsend?')) handleUnsendMessage(msg._id); }}
+              onClick={(e) => { e.stopPropagation(); handleUnsendMessage(msg._id); }}
               style={{
                 background: 'rgba(255,255,255,0.15)',
                 borderRadius: '50%',
@@ -97,29 +96,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
           <div
             style={{
               position: 'absolute',
-              top: '-40px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#ef4444',
-              color: 'white',
-              padding: '6px 12px',
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: 'bold',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              zIndex: 1000,
-              whiteSpace: 'nowrap'
+              top: '0',
+              left: '0',
+              right: '0',
+              bottom: '0',
+              background: 'rgba(99, 102, 241, 0.2)',
+              borderRadius: 'inherit',
+              zIndex: 1,
+              pointerEvents: 'none'
             }}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleUnsendMessage(msg._id);
-              setSelectedMessageId(null);
-            }}
-            className="unsend-btn"
-          >
-            Unsend
-          </div>
+          />
         )}
 
         {msg.type === 'post_share' && msg.sharedPost ? (

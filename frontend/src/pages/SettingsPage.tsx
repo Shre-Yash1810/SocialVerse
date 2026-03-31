@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { Navigation, Shield, FileText, ChevronRight, LogOut, Info, Lock, ChevronLeft, UserX, MessageSquare, Send, AlertTriangle } from 'lucide-react';
-
 import api from '../services/api';
 import '../styles/Settings.css';
 
@@ -72,7 +71,9 @@ const SettingsPage: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userid');
-    navigate('/auth');
+    localStorage.removeItem('db_id');
+    // Use window.location to force a full page reload and clear all in-memory state/cache
+    window.location.href = '/auth';
   };
 
   if (loading) return <div className="loading-screen">Loading Settings...</div>;

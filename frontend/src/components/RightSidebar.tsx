@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, BookOpen, MessageCircle, Bell, PlusSquare, User, Settings } from 'lucide-react';
 import logo from '../assets/logo/logo-light.png';
 import { useNotifications } from '../context/NotificationContext';
+import { useChat } from '../context/ChatContext';
 import BytesIcon from './BytesIcon';
 import CreatePostModal from './CreatePostModal';
 
@@ -11,6 +12,7 @@ const RightSidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
+  const { unreadChatCount } = useChat();
 
   if (location.pathname === '/auth') {
     return null;
@@ -40,7 +42,10 @@ const RightSidebar: React.FC = () => {
             <span className="sidebar-label">Blogs</span>
           </NavLink>
           <NavLink to="/versechat" className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
-            <MessageCircle size={26} />
+            <div className="icon-container">
+              <MessageCircle size={26} />
+              {unreadChatCount > 0 && <span className="notification-dot" />}
+            </div>
             <span className="sidebar-label">VerseChat</span>
           </NavLink>
           <NavLink to="/notifications" className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`} title="Notifications">

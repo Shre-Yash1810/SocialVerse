@@ -1,10 +1,11 @@
 import express from 'express';
-import { getChats, getChat, getMessages, createChat, unsendMessage, addParticipants, leaveChat, sendMessage, removeParticipant, updateChat, sharePost, markMessagesAsRead } from '../controllers/chatController';
+import { getChats, getChat, getMessages, createChat, unsendMessage, addParticipants, leaveChat, sendMessage, removeParticipant, updateChat, sharePost, markMessagesAsRead, getUnreadChatCount } from '../controllers/chatController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 router.get('/', protect, getChats);
+router.get('/unread-count', protect, getUnreadChatCount);
 router.post('/share', protect, sharePost);
 router.get('/:chatId', protect, getChat);
 router.post('/', protect, createChat);

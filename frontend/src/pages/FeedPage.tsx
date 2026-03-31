@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
@@ -28,7 +29,7 @@ interface Post {
 }
 
 const FeedVideo: React.FC<{ src: string }> = ({ src }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
@@ -69,102 +70,115 @@ const FeedVideo: React.FC<{ src: string }> = ({ src }) => {
 };
 
 const FeedPage: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
   const { user } = useUser();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
   const [activeDetailPost, setActiveDetailPost] = useState<any | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const handleDeepLink = async () => {
+  // Fetch Feed using useQuery
+  const { data: posts = [], isLoading } = useQuery<Post[]>({
+    queryKey: ['feed'],
+    queryFn: async () => {
+      const res = await api.get('/posts/feed');
+      return res.data
+        .filter((post: any) => post.type !== 'Blog')
+        .map((post: any) => ({
+          ...post,
+          isLiked: post.likes?.some((id: any) => id.toString() === user?._id),
+          isSaved: post.savedBy?.some((id: any) => id.toString() === user?._id)
+        }));
+    },
+    enabled: !!user?._id,
+  });
+
+  // Handle Deep Links
+  useEffect(() => {
     const investigateId = searchParams.get('investigate');
-    if (investigateId) {
-      // Find in existing posts first
+    if (investigateId && posts.length > 0) {
       const existing = posts.find(p => p._id === investigateId);
       if (existing) {
         setActiveDetailPost(existing);
-        return;
+      } else {
+        api.get(`/posts/${investigateId}`).then(res => {
+          if (res.data) setActiveDetailPost(res.data);
+        }).catch(err => console.error('Failed to fetch investigation post', err));
       }
-      
-      // Otherwise fetch it
-      try {
-        const res = await api.get(`/posts/${investigateId}`);
-        if (res.data) {
-           setActiveDetailPost(res.data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch investigation post', err);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (posts.length > 0) {
-      handleDeepLink();
     }
   }, [posts, searchParams]);
 
-  const fetchFeed = async () => {
-    if (!user?._id) return;
-    try {
-      const res = await api.get('/posts/feed');
-      const feedData = res.data
-        .filter((post: any) => post.type !== 'Blog')
-        .map((post: any) => ({
-        ...post,
-        isLiked: post.likes?.some((id: any) => id.toString() === user._id),
-        isSaved: post.savedBy?.some((id: any) => id.toString() === user._id)
-      }));
-      setPosts(feedData);
-    } catch (err) {
-      console.error('Failed to fetch feed', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Optimistic Like Mutation
+  const likeMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/posts/${id}/like`),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['feed'] });
+      const previousPosts = queryClient.getQueryData<Post[]>(['feed']);
+      
+      queryClient.setQueryData(['feed'], (old: Post[] | undefined) => 
+        old?.map(post => {
+          if (post._id === id) {
+            const alreadyLiked = post.isLiked;
+            const newLikes = alreadyLiked 
+              ? post.likes.filter(uid => uid !== user?._id) 
+              : [...post.likes, user?._id || ''];
+            return { ...post, isLiked: !alreadyLiked, likes: newLikes };
+          }
+          return post;
+        })
+      );
+      
+      return { previousPosts };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['feed'], context.previousPosts);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    },
+  });
 
-  useEffect(() => {
-    if (user?._id) fetchFeed();
-  }, [user?._id]);
+  // Optimistic Save Mutation
+  const saveMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/posts/${id}/save`),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['feed'] });
+      const previousPosts = queryClient.getQueryData<Post[]>(['feed']);
+      
+      queryClient.setQueryData(['feed'], (old: Post[] | undefined) => 
+        old?.map(post => {
+          if (post._id === id) {
+            const alreadySaved = post.isSaved;
+            const newSavedBy = alreadySaved 
+              ? post.savedBy?.filter(uid => uid !== user?._id) 
+              : [...(post.savedBy || []), user?._id || ''];
+            return { ...post, isSaved: !alreadySaved, savedBy: newSavedBy };
+          }
+          return post;
+        })
+      );
+      
+      return { previousPosts };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['feed'], context.previousPosts);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    },
+  });
 
-  const handleLike = async (id: string) => {
-    try {
-      const res = await api.post(`/posts/${id}/like`);
-      setPosts(posts.map(post => 
-        post._id === id ? { ...post, isLiked: !post.isLiked, likes: res.data.likes } : post
-      ));
-    } catch (err) {
-      console.error('Like failed', err);
-    }
-  };
-
-  const handleSave = async (id: string) => {
-    try {
-      const res = await api.post(`/posts/${id}/save`);
-      setPosts(posts.map(post => 
-        post._id === id ? { ...post, isSaved: !post.isSaved, savedBy: res.data.savedBy } : post
-      ));
-    } catch (err) {
-      console.error('Save failed', err);
-    }
-  };
-
-  const handleShare = (id: string) => {
-    setActiveSharePost(id);
-  };
-
-  const handleComment = (id: string) => {
-    setActiveCommentPost(id);
-  };
-
-  if (loading) return <FeedSkeleton />;
+  if (isLoading && posts.length === 0) return <FeedSkeleton />;
 
   return (
     <div className="feed-page">
       <main className="feed-container">
-        {posts.length === 0 ? (
+        {posts.length === 0 && !isLoading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
             <h3>No posts yet.</h3>
             <p>Be the first one to post in the verse!</p>
@@ -182,7 +196,6 @@ const FeedPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{post.author.name}</p>
                     </div>
-
                   </div>
               </div>
               <div className="post-image-container" onClick={() => setActiveDetailPost(post)} style={{ cursor: 'pointer' }}>
@@ -193,23 +206,23 @@ const FeedPage: React.FC = () => {
                 <Heart 
                   size={26} 
                   className={`icon-btn-action ${post.isLiked ? 'liked' : ''}`} 
-                  onClick={() => handleLike(post._id)}
+                  onClick={() => likeMutation.mutate(post._id)}
                 />
                 <MessageCircle 
                   size={26} 
                   className="icon-btn-action" 
-                  onClick={() => handleComment(post._id)}
+                  onClick={() => setActiveCommentPost(post._id)}
                 />
                 <Share2 
                   size={26} 
                   className="icon-btn-action" 
-                  onClick={() => handleShare(post._id)}
+                  onClick={() => setActiveSharePost(post._id)}
                 />
                 <div style={{ marginLeft: 'auto' }}>
                   <Bookmark 
                     size={26} 
                     className={`icon-btn-action ${post.isSaved ? 'saved' : ''}`} 
-                    onClick={() => handleSave(post._id)}
+                    onClick={() => saveMutation.mutate(post._id)}
                   />
                 </div>
               </div>
@@ -229,7 +242,7 @@ const FeedPage: React.FC = () => {
                 {post.commentsCount > 0 && (
                   <p 
                     style={{ fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', marginTop: '6px' }}
-                    onClick={() => handleComment(post._id)}
+                    onClick={() => setActiveCommentPost(post._id)}
                   >
                     View all {post.commentsCount} comments
                   </p>
@@ -239,7 +252,6 @@ const FeedPage: React.FC = () => {
                   {formatRelativeTime(post.createdAt)}
                 </p>
               </div>
-
             </article>
           ))
         )}
@@ -249,7 +261,7 @@ const FeedPage: React.FC = () => {
           postId={activeCommentPost} 
           post={posts.find(p => p._id === activeCommentPost)}
           onClose={() => setActiveCommentPost(null)} 
-          onCommentAdded={fetchFeed}
+          onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ['feed'] })}
         />
       )}
       {activeSharePost && (
@@ -262,7 +274,7 @@ const FeedPage: React.FC = () => {
         <PostDetailModal 
           post={activeDetailPost} 
           onClose={() => setActiveDetailPost(null)} 
-          onUpdate={fetchFeed}
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['feed'] })}
         />
       )}
     </div>

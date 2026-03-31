@@ -73,15 +73,17 @@ export const likePost = async (req: Request, res: Response) => {
       post.likes.push(userId);
       await post.save();
       
-      const notification = await Notification.create({
-        recipient: post.author,
-        sender: userId,
-        type: 'LIKE',
-        post: post._id
-      });
-      sendRealTimeNotification(post.author.toString(), notification);
+      if (post.author.toString() !== userId.toString()) {
+        const notification = await Notification.create({
+          recipient: post.author,
+          sender: userId,
+          type: 'LIKE',
+          post: post._id
+        });
+        sendRealTimeNotification(post.author.toString(), notification);
+        await XPService.handleInteraction(userId, post.author.toString(), 'LIKE');
+      }
 
-      await XPService.handleInteraction(userId, post.author.toString(), 'LIKE');
       return res.json({ message: 'Post liked', likesCount: post.likes.length, likes: post.likes });
     }
   } catch (error) {

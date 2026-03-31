@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Branding from '../components/Branding';
 import { Camera } from 'lucide-react';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import '../styles/Auth.css';
 
 const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useUser();
   const [profile, setProfile] = useState({
     profilePic: '',
     userId: '',
@@ -67,6 +69,7 @@ const OnboardingPage: React.FC = () => {
       localStorage.setItem('profilePic', res.data.profilePic || '');
       sessionStorage.removeItem('signup_email');
       sessionStorage.removeItem('signup_password');
+      await refreshUser();
       navigate('/profile');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Something went wrong');
