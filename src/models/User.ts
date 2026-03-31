@@ -31,6 +31,8 @@ export interface IUser extends Document {
   totalCommentsReceived: number;
   isBanned: boolean;
   lastSeen?: Date;
+  lastBirthdayRewardYear: number;
+  lastAnniversaryRewardYear: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +69,8 @@ const UserSchema = new Schema<IUser>(
     totalCommentsReceived: { type: Number, default: 0 },
     isBanned: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
+    lastBirthdayRewardYear: { type: Number, default: 0 },
+    lastAnniversaryRewardYear: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

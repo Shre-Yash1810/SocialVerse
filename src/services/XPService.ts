@@ -1,6 +1,8 @@
 import User, { IUser } from '../models/User';
 import { XP_LEVELS, XP_REWARDS } from '../utils/constants';
 import mongoose from 'mongoose';
+import Notification from '../models/Notification';
+import { sendRealTimeNotification } from './socketService';
 
 const isMockMode = () => mongoose.connection.readyState !== 1;
 
@@ -54,6 +56,65 @@ class XPService {
 
     if (points !== 0) {
       await this.addXP(authorId, points);
+    }
+  }
+
+  async checkAndAwardAnnualBonuses(userId: string) {
+    if (isMockMode()) return;
+    const user = await User.findById(userId);
+    if (!user) return;
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    let updated = false;
+
+    // Helper to check if it's the "day or after" for this year's event
+    const isEventPassed = (eventDate: Date) => {
+      const eventThisYear = new Date(currentYear, eventDate.getMonth(), eventDate.getDate());
+      return today >= eventThisYear;
+    };
+
+    // Birthday Bonus
+    if (isEventPassed(user.dob) && user.lastBirthdayRewardYear < currentYear) {
+      await this.addXP(userId, XP_REWARDS.BIRTHDAY_BONUS);
+      user.lastBirthdayRewardYear = currentYear;
+      updated = true;
+      
+      await this.createSystemNotification(userId, 'BIRTHDAY', `Happy Birthday! You've received ${XP_REWARDS.BIRTHDAY_BONUS} XP! 🎂`);
+    }
+
+    // Anniversary Bonus (Only if account is at least 1 year old)
+    if (isEventPassed(user.createdAt) && user.lastAnniversaryRewardYear < currentYear) {
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(today.getFullYear() - 1);
+      
+      if (user.createdAt <= oneYearAgo) {
+        await this.addXP(userId, XP_REWARDS.ANNIVERSARY_BONUS);
+        user.lastAnniversaryRewardYear = currentYear;
+        updated = true;
+        await this.createSystemNotification(userId, 'ANNIVERSARY', `Happy SocialVerse Anniversary! You've received ${XP_REWARDS.ANNIVERSARY_BONUS} XP! 🚀`);
+      }
+    }
+
+    if (updated) {
+      await user.save();
+    }
+  }
+
+  private async createSystemNotification(userId: string, type: 'BIRTHDAY' | 'ANNIVERSARY', message: string) {
+    try {
+      const systemUser = await User.findOne({ userid: 'socialverse_guide' });
+      if (!systemUser) return;
+
+      const notification = await Notification.create({
+        recipient: new mongoose.Types.ObjectId(userId),
+        sender: systemUser._id,
+        type,
+        extraInfo: message
+      });
+      sendRealTimeNotification(userId, notification);
+    } catch (err) {
+      console.error('Error creating system notification:', err);
     }
   }
 }

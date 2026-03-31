@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Heart, MessageCircle, UserPlus, Hand, AtSign } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Hand, AtSign, Cake, Gift } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import api from '../services/api';
 import VerifiedBadge from '../components/VerifiedBadge';
@@ -65,6 +65,8 @@ const NotificationsPage: React.FC = () => {
       case 'FOLLOW': return <UserPlus size={16} color="#4f46e5" />;
       case 'WAVE': return <Hand size={16} color="#f59e0b" />;
       case 'MENTION': return <AtSign size={16} color="#6366f1" />;
+      case 'BIRTHDAY': return <Cake size={16} color="#f472b6" />;
+      case 'ANNIVERSARY': return <Gift size={16} color="#fbbf24" />;
       default: return <Bell size={16} color="#64748b" />;
     }
   };
@@ -76,6 +78,9 @@ const NotificationsPage: React.FC = () => {
       case 'FOLLOW': return `started following you.`;
       case 'WAVE': return `waved at you.`;
       case 'MENTION': return `mentioned you in a ${notif.moment ? 'moment' : 'post'}.`;
+      case 'BIRTHDAY':
+      case 'ANNIVERSARY':
+        return notif.extraInfo || `sent you a special reward!`;
       default: return `interacted with you.`;
     }
   };
@@ -129,12 +134,16 @@ const NotificationsPage: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#1e293b', lineHeight: '1.4', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', marginRight: '4px' }}>
                         {notif.sender?.userid}
                         {notif.sender?.isVerified && <VerifiedBadge size={14} />}
                       </span> 
-                      <span>{getNotificationText(notif)}</span>
+                      {/* Priority to extraInfo for rewards, otherwise default text */}
+                      {(notif.type === 'BIRTHDAY' || notif.type === 'ANNIVERSARY') ? (
+                        <span style={{ color: '#0f172a', fontWeight: 500 }}>{notif.extraInfo}</span>
+                      ) : (
+                        <span>{getNotificationText(notif)}</span>
+                      )}
                     </p>
                   </div>
 

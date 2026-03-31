@@ -5,6 +5,7 @@ import Report from '../models/Report';
 import Notification from '../models/Notification';
 import { sendRealTimeNotification } from '../services/socketService';
 import CloudinaryService from '../services/CloudinaryService';
+import XPService from '../services/XPService';
 
 const isMockMode = () => mongoose.connection.readyState !== 1;
 
@@ -231,6 +232,10 @@ export const getMe = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(userId).select('-password -blockedUsers');
     if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Check for annual bonuses (Birthday, Anniversary)
+    await XPService.checkAndAwardAnnualBonuses(userId);
+    
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
