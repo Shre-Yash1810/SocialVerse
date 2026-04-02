@@ -1,11 +1,12 @@
 import express from 'express';
-import { createPost, likePost, savePost, getFeed, getFollowingFeed, getComments, getUserPosts, reportPost, getPostById } from '../controllers/postController';
+import { createPost, likePost, savePost, getFeed, getFollowingFeed, getComments, getUserPosts, reportPost, getPostById, deletePost } from '../controllers/postController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 router.post('/', protect, createPost);
 router.post('/report', protect, reportPost);
+router.delete('/:postId', protect, deletePost);
 router.get('/feed', protect, getFeed);
 router.get('/following-feed', protect, getFollowingFeed);
 router.get('/user/:handle', protect, getUserPosts);

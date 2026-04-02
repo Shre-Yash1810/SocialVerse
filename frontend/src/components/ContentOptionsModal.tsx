@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, ShieldAlert, ChevronLeft, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import ReactDOM from 'react-dom';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import '../styles/Settings.css';
 import '../styles/Modals.css';
 
@@ -9,9 +10,11 @@ interface ContentOptionsModalProps {
   contentId: string;
   contentType: 'post' | 'blog' | 'moment';
   onClose: () => void;
+  authorId?: string;
 }
 
-const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, contentType, onClose }) => {
+const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, contentType, onClose, authorId }) => {
+  const { user: currentUser } = useUser();
   const [activeView, setActiveView] = useState<'main' | 'report'>('main');
   const [reportReason, setReportReason] = useState('Spam');
   const [reportDetails, setReportDetails] = useState('');
@@ -19,6 +22,24 @@ const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, co
   const [preview, setPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+
+  const isAuthor = currentUser?._id === authorId;
+
+  const handleDelete = async () => {
+    const warning = `Are you sure? If you delete this ${contentType}, you will lose all the XP earned from its likes and comments. This action cannot be undone.`;
+    
+    if (window.confirm(warning)) {
+      setIsSubmitting(true);
+      try {
+        await api.delete(`/posts/${contentId}`);
+        window.location.reload(); // Refresh to update grid and XP
+      } catch (err) {
+        console.error('Failed to delete content', err);
+        setMessage('Failed to delete content. Please try again.');
+        setIsSubmitting(false);
+      }
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,7 +83,12 @@ const ContentOptionsModal: React.FC<ContentOptionsModalProps> = ({ contentId, co
         </button>
       </div>
       <div className="options-body">
-        <button className="option-btn danger" onClick={() => setActiveView('report')}>
+        {isAuthor && (
+          <button className="option-btn danger" onClick={handleDelete} disabled={isSubmitting}>
+            {isSubmitting ? 'Deleting...' : `Delete ${contentType.charAt(0).toUpperCase() + contentType.slice(1)}`}
+          </button>
+        )}
+        <button className="option-btn" onClick={() => setActiveView('report')}>
           <ShieldAlert size={18} />
           Report {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
         </button>

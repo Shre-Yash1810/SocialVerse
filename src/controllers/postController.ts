@@ -68,6 +68,12 @@ export const likePost = async (req: Request, res: Response) => {
     if (isLiked) {
       post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
       await post.save();
+
+      // Subtract XP from author on unlike (Only if not self-engagement)
+      if (post.author.toString() !== userId.toString()) {
+        await XPService.handleInteraction(userId, post.author.toString(), 'UNLIKE');
+      }
+
       return res.json({ message: 'Post unliked', likesCount: post.likes.length, likes: post.likes });
     } else {
       post.likes.push(userId);
@@ -87,6 +93,40 @@ export const likePost = async (req: Request, res: Response) => {
       return res.json({ message: 'Post liked', likesCount: post.likes.length, likes: post.likes });
     }
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const deletePost = async (req: Request, res: Response) => {
+  const { postId } = req.params;
+  const userId = (req as any).user._id;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    // Verify ownership
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(401).json({ message: 'Unauthorized. You can only delete your own posts.' });
+    }
+
+    // 1. Subtract XP from the author for all engagement earned on this post
+    await XPService.handlePostDeletion(postId as string, userId.toString());
+
+    // 2. Delete associated comments
+    await Comment.deleteMany({ post: postId });
+
+    // 3. Delete from Cloudinary if it's an uploaded file
+    if (post.content && post.content.includes('cloudinary.com')) {
+      await CloudinaryService.deleteFile(post.content);
+    }
+
+    // 4. Delete the post document
+    await Post.findByIdAndDelete(postId);
+
+    res.json({ message: 'Post deleted successfully, and associated XP has been removed.' });
+  } catch (error) {
+    console.error('Delete post error:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 };

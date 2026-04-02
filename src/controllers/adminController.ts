@@ -231,16 +231,21 @@ export const getAllPosts = async (req: Request, res: Response) => {
   }
 };
 
+import XPService from '../services/XPService';
+
 export const deleteAdminPost = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const post = await Post.findById(id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
+    // Subtract XP from the author before deletion
+    await XPService.handlePostDeletion(id as string, post.author.toString());
+
     await Post.findByIdAndDelete(id);
     await Comment.deleteMany({ post: id });
     
-    res.json({ message: 'Post deleted successfully' });
+    res.json({ message: 'Post deleted successfully, and associated XP has been removed.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

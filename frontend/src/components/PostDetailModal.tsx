@@ -356,6 +356,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
         <ContentOptionsModal
           contentId={post._id}
           contentType="post"
+          authorId={post.author?._id}
           onClose={() => setIsOptionsOpen(false)}
         />
       )}

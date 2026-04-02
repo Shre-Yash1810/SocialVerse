@@ -9,8 +9,8 @@ export const XP_LEVELS: { [key: number]: number } = {
   8: 104800,
   9: 176800,
   10: 284800,
-  11: 737800,
-  12: 644800, // PRD says 644800 after 737800, which is odd, but I'll follow it or adjust if logical.
+  11: 437800,
+  12: 644800,
   13: 914800,
   14: 1256800,
   15: 1688800,

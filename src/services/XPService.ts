@@ -1,4 +1,5 @@
 import User, { IUser } from '../models/User';
+import Post from '../models/Post';
 import { XP_LEVELS, XP_REWARDS } from '../utils/constants';
 import mongoose from 'mongoose';
 import Notification from '../models/Notification';
@@ -31,10 +32,14 @@ class XPService {
 
   async handleInteraction(interactorId: string, authorId: string, action: 'LIKE' | 'COMMENT' | 'UNLIKE' | 'DELETE_COMMENT') {
     if (isMockMode()) return;
+    
+    // 1. Strict Rule: Never award XP for self-engagement
+    if (interactorId.toString() === authorId.toString()) return;
+
     const interactor = await User.findById(interactorId);
     if (!interactor) return;
 
-    // Engagement only counts if the account is at least 24 hours old
+    // 2. Engagement only counts if the account is at least 24 hours old
     const accountAge = (Date.now() - interactor.createdAt.getTime()) / (1000 * 60 * 60);
     if (accountAge < 24) return;
 
@@ -59,6 +64,27 @@ class XPService {
     }
   }
 
+  /**
+   * Subtracts all XP earned from a post (likes and comments) when it is deleted.
+   */
+  async handlePostDeletion(postId: string, authorId: string) {
+    if (isMockMode()) return;
+
+    const post = await Post.findById(postId);
+    if (!post) return;
+
+    // Calculate total XP earned from this post
+    // Note: We only subtract for others' likes/comments (as self-engagement shouldn't have given XP)
+    const likesCount = post.likes.length;
+    const commentsCount = post.commentsCount || 0;
+
+    const pointsToSubtract = (likesCount * XP_REWARDS.LIKE) + (commentsCount * XP_REWARDS.COMMENT);
+
+    if (pointsToSubtract > 0) {
+      await this.addXP(authorId, -pointsToSubtract);
+    }
+  }
+
   async checkAndAwardAnnualBonuses(userId: string) {
     if (isMockMode()) return;
     const user = await User.findById(userId);
@@ -69,13 +95,17 @@ class XPService {
     let updated = false;
 
     // Helper to check if it's the "day or after" for this year's event
-    const isEventPassed = (eventDate: Date) => {
-      const eventThisYear = new Date(currentYear, eventDate.getMonth(), eventDate.getDate());
+    const isEventPassed = (eventDate: any) => {
+      if (!eventDate) return false;
+      const d = new Date(eventDate);
+      if (isNaN(d.getTime())) return false; // Invalid date
+      
+      const eventThisYear = new Date(currentYear, d.getMonth(), d.getDate());
       return today >= eventThisYear;
     };
 
     // Birthday Bonus
-    if (isEventPassed(user.dob) && user.lastBirthdayRewardYear < currentYear) {
+    if (user.dob && isEventPassed(user.dob) && user.lastBirthdayRewardYear < currentYear) {
       await this.addXP(userId, XP_REWARDS.BIRTHDAY_BONUS);
       user.lastBirthdayRewardYear = currentYear;
       updated = true;
