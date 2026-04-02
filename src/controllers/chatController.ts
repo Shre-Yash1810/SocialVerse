@@ -341,12 +341,22 @@ export const sendMessage = async (req: Request, res: Response) => {
   }
 
   try {
+    let finalMedia = media;
+    let finalType = type || 'text';
+
+    // Handle base64 image upload
+    if (media && media.startsWith('data:image')) {
+      const CloudinaryService = require('../services/CloudinaryService').default;
+      finalMedia = await CloudinaryService.uploadFile(media, 'chat_media');
+      finalType = 'image';
+    }
+
     const message = await Message.create({
       chat: chatId as any,
       sender: (req as any).user._id,
       text,
-      media,
-      type: (type || 'text') as any
+      media: finalMedia,
+      type: finalType as any
     });
 
     const populatedMessage = await Message.findById(message._id).populate('sender', 'userid name profilePic isVerified');
@@ -367,9 +377,11 @@ export const sendMessage = async (req: Request, res: Response) => {
 
     res.status(201).json(populatedMessage);
   } catch (error) {
+    console.error('Send message error:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 export const sharePost = async (req: Request, res: Response) => {
   const { postId, targets } = req.body; // targets: { id: string, type: 'user'|'chat' }[]

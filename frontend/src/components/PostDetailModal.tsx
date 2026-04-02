@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, Heart, MessageCircle, Share2, Bookmark, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
@@ -109,7 +110,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
     }
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay animate-fade-in" style={{ zIndex: 1300 }}>
       <button onClick={onClose} className="desktop-only" style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '4px', border: 'none', color: 'white', cursor: 'pointer', zIndex: 50 }}>
         <X size={28} />
@@ -358,7 +359,8 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, onClose, onUpda
           onClose={() => setIsOptionsOpen(false)}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 };
 

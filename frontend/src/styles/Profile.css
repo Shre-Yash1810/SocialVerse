@@ -9,14 +9,14 @@
   max-width: 100%;
   /* Full width as requested */
   margin: 0;
-  padding: 135px 5% 100px;
+  padding: 135px 1.5% 100px;
   /* Accounts for 85px fixed top-nav and bottom-nav space */
 }
 
 @media (min-width: 768px) {
   .profile-container {
     padding-left: 5%;
-    padding-right: calc(80px + 5%);
+    padding-right: calc(80px + 1.5%);
     padding-top: 40px;
     /* Top nav hidden on desktop */
   }
@@ -27,7 +27,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(20px, 8vw, 100px);
+  gap: clamp(40px, 12vw, 200px);
   /* Responsive gap */
   margin-bottom: 5px;
   /* Extremely close */
@@ -46,8 +46,8 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   /* More professional border */
   border-radius: 50%;
-  width: clamp(120px, 20vw, 220px);
-  height: clamp(120px, 20vw, 220px);
+  width: clamp(160px, 28vw, 320px);
+  height: clamp(160px, 28vw, 320px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,7 +122,7 @@
 }
 
 .stat-value-large {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 900;
   color: var(--text-main);
   letter-spacing: -0.03em;

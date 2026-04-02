@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { X, Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import ContentOptionsModal from './ContentOptionsModal';
 import api from '../services/api';
@@ -30,17 +31,18 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
     }
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div className="blog-reader-overlay animate-fade-in" style={{ 
       position: 'fixed', 
       top: 0, left: 0, right: 0, bottom: 0, 
       width: '100vw', height: '100dvh', 
       background: '#0a0a0c',
-      zIndex: 99999, 
+      zIndex: 2000, 
       fontFamily: "'Inter', sans-serif",
       display: 'flex',
       flexDirection: 'column',
-      color: '#fff'
+      color: '#fff',
+      overflow: 'hidden'
     }}>
       {/* Universe Background Overlay */}
       <div style={{
@@ -153,7 +155,6 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
       </div>
 
       {isCommentsOpen && (
-        <div style={{ zIndex: 10001, position: 'relative' }}>
         <CommentsModal 
           postId={post._id} 
           post={post}
@@ -162,16 +163,13 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
             if (onUpdate) onUpdate();
           }}
         />
-        </div>
       )}
 
       {isShareModalOpen && (
-        <div style={{ zIndex: 10001, position: 'relative' }}>
         <ShareModal 
           postId={post._id} 
           onClose={() => setIsShareModalOpen(false)} 
         />
-        </div>
       )}
 
       {isOptionsOpen && (
@@ -181,7 +179,8 @@ const BlogDetailModal: React.FC<BlogDetailModalProps> = ({ post, onClose, onUpda
           onClose={() => setIsOptionsOpen(false)}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 };
 

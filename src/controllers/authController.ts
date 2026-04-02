@@ -37,6 +37,15 @@ export const registerUser = async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const userDob = new Date(dob);
+    const birthdayThisYear = new Date(currentYear, userDob.getUTCMonth(), userDob.getUTCDate());
+    
+    // If birthday has already passed this year, set lastReward to this year (so they don't get it again)
+    // If birthday is still coming up, set to last year (so they DO get it this year)
+    const lastBirthdayRewardYear = now >= birthdayThisYear ? currentYear : currentYear - 1;
+
     const user = await User.create({
       userid: lowerCaseUserId,
       name,
@@ -44,7 +53,9 @@ export const registerUser = async (req: Request, res: Response) => {
       password: hashedPassword,
       dob,
       pronouns,
-      profilePic: profilePicUrl
+      profilePic: profilePicUrl,
+      lastBirthdayRewardYear,
+      lastAnniversaryRewardYear: currentYear
     });
 
     if (user) {

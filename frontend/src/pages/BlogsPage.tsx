@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { MoreVertical } from 'lucide-react';
 import api from '../services/api';
 import BlogDetailModal from '../components/BlogDetailModal';
+import ContentOptionsModal from '../components/ContentOptionsModal';
 import { useUser } from '../context/UserContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 import '../styles/Feed.css';
@@ -20,6 +22,7 @@ const BlogsPage: React.FC = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [activeDetailBlog, setActiveDetailBlog] = useState<any | null>(null);
+  const [activeOptionsId, setActiveOptionsId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -66,6 +69,11 @@ const BlogsPage: React.FC = () => {
     return `${minutes} min read`;
   };
 
+  const handleOpenOptions = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setActiveOptionsId(id);
+  };
+
   return (
     <div className="blogs-page">
       <main className="blogs-container">
@@ -85,7 +93,15 @@ const BlogsPage: React.FC = () => {
               <section className="featured-section">
                 <div className="blog-featured-card" onClick={() => setActiveDetailBlog(featuredBlog)}>
                   <div className="blog-featured-content">
-                    <span className="featured-tag">Featured Story</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className="featured-tag">Featured Story</span>
+                      <button 
+                        onClick={(e) => handleOpenOptions(e, featuredBlog._id)}
+                        style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', marginTop: '-4px', marginRight: '-4px' }}
+                      >
+                        <MoreVertical size={20} />
+                      </button>
+                    </div>
                     <h3>{featuredBlog.caption || 'Untitled Blog'}</h3>
                     <p className="blog-excerpt">
                       {featuredBlog.content && featuredBlog.content.length > 200 
@@ -128,6 +144,12 @@ const BlogsPage: React.FC = () => {
                           </div>
                           <span className="spacer">•</span>
                           <span>{calculateReadTime(blog.content)}</span>
+                          <button 
+                            onClick={(e) => handleOpenOptions(e, blog._id)}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', marginLeft: 'auto', display: 'flex' }}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
                         </div>
                         <h3>{blog.caption || 'Untitled Blog'}</h3>
                         <p>
@@ -153,6 +175,13 @@ const BlogsPage: React.FC = () => {
         <BlogDetailModal 
           post={activeDetailBlog} 
           onClose={() => setActiveDetailBlog(null)} 
+        />
+      )}
+      {activeOptionsId && (
+        <ContentOptionsModal 
+          contentId={activeOptionsId} 
+          contentType="blog" 
+          onClose={() => setActiveOptionsId(null)} 
         />
       )}
     </div>

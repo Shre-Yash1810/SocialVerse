@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Share2, MoreVertical, Music } from 'lucide-react'
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
+import ContentOptionsModal from '../components/ContentOptionsModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { useNavigate } from 'react-router-dom';
 import { useByte } from '../context/ByteContext';
@@ -29,16 +30,13 @@ const BytePlayer: React.FC<{
   onLike: (id: string) => void; 
   onComment: (id: string) => void;
   onShare: (id: string) => void;
+  onOptions: (id: string) => void;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ reel, onLike, onComment, onShare, navigate }) => {
+}> = ({ reel, onLike, onComment, onShare, onOptions, navigate }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { setActiveByteId } = useByte();
 
-  // Custom Intersection Observer since useInView from framer-motion might behave differently 
-  // depending on version/setup. Using a native one for precision if needed, but let's try 
-  // a standard ref-based check if useInView isn't cutting it.
-  
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
@@ -138,7 +136,7 @@ const BytePlayer: React.FC<{
           <div className="reel-action-btn" onClick={() => onShare(reel._id)}>
             <Share2 size={30} color="white" />
           </div>
-          <div className="reel-action-btn">
+          <div className="reel-action-btn" onClick={() => onOptions(reel._id)}>
             <MoreVertical size={30} color="white" />
           </div>
           <div style={{ width: '32px', height: '32px', borderRadius: '6px', border: '2px solid white', background: '#333', marginTop: '10px', overflow: 'hidden' }}>
@@ -156,6 +154,7 @@ const BytesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
+  const [activeOptionsPost, setActiveOptionsPost] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -212,6 +211,10 @@ const BytesPage: React.FC = () => {
     setActiveSharePost(id);
   };
 
+  const handleOptions = (id: string) => {
+    setActiveOptionsPost(id);
+  };
+
   if (loading) return <div className="loading-screen">Loading Bytes...</div>;
 
   return (
@@ -230,6 +233,7 @@ const BytesPage: React.FC = () => {
                 onLike={toggleLike} 
                 onComment={handleComment} 
                 onShare={handleShare}
+                onOptions={handleOptions}
                 navigate={navigate}
               />
             </div>
@@ -248,6 +252,13 @@ const BytesPage: React.FC = () => {
         <ShareModal 
           postId={activeSharePost} 
           onClose={() => setActiveSharePost(null)} 
+        />
+      )}
+      {activeOptionsPost && (
+        <ContentOptionsModal 
+          contentId={activeOptionsPost} 
+          contentType="post" 
+          onClose={() => setActiveOptionsPost(null)} 
         />
       )}
     </div>

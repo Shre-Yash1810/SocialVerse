@@ -20,6 +20,7 @@ import AllBadgesModal from '../components/AllBadgesModal';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { BADGE_CONFIG } from '../utils/badges';
 import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
+import { XP_LEVELS } from '../utils/constants';
 import '../styles/Profile.css';
 
 const ProfilePage: React.FC = () => {
@@ -168,9 +169,15 @@ const ProfilePage: React.FC = () => {
     if (!user) return { current: 0, target: 900, percentage: 0, remaining: 900 };
     const current = user.xp || 0;
     const level = user.level || 1;
-    const target = level * 900; 
-    const percentage = Math.min(100, Math.max(0, (current / target) * 100));
+    const base = XP_LEVELS[level] || 0;
+    const target = XP_LEVELS[level + 1] || (base + 1000); 
+    
+    // Percentage relative to current level range
+    const range = target - base;
+    const progressInRange = Math.max(0, current - base);
+    const percentage = Math.min(100, (progressInRange / range) * 100);
     const remaining = Math.max(0, target - current);
+    
     return { current, target, percentage, remaining };
   };
 
@@ -241,61 +248,62 @@ const ProfilePage: React.FC = () => {
           </div>
         </section>
 
-        <section className="profile-identity">
-          <div className="name-badge-row">
+        <section className="profile-identity" style={{ textAlign: 'center', margin: '20px auto 30px' }}>
+          <div className="name-badge-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '8px' }}>
             <div 
               className="level-badge-celestial" 
               onClick={() => setShowXpBar(!showXpBar)}
+              style={{ marginBottom: 0, padding: '6px 14px' }}
               title="Click to view XP"
             >
               Lv. {user.level || 1}
             </div>
-            <h1 className="display-name-refined">
+            <h1 className="display-name-refined" style={{ margin: 0, fontSize: '2.2rem', fontWeight: 900 }}>
               {user.name}
             </h1>
           </div>
           
           {showXpBar && (
             <div className="animate-fade-in" style={{
-              margin: '8px auto 15px auto',
+              margin: '25px auto 35px auto',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-color)',
-              borderRadius: '16px',
-              padding: '12px 16px',
-              width: '80%',
-              maxWidth: '260px',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+              borderRadius: '24px',
+              padding: '24px 32px',
+              width: '95%',
+              maxWidth: '520px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px'
+              gap: '15px'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', fontWeight: 900 }}>
                 <span style={{ color: 'var(--primary-color)' }}>{getXpProgress().current} XP</span>
                 <span style={{ color: 'var(--text-muted)' }}>{getXpProgress().target} XP</span>
               </div>
               <div style={{ 
                 width: '100%', 
-                height: '8px', 
+                height: '12px', 
                 background: 'rgba(59, 130, 246, 0.05)', 
                 border: '1px solid rgba(59, 130, 246, 0.3)', 
-                borderRadius: '8px', 
+                borderRadius: '12px', 
                 padding: '1px'
               }}>
                 <div style={{ 
                   height: '100%', 
                   width: `${getXpProgress().percentage}%`, 
-                  background: '#3b82f6', 
-                  borderRadius: '6px',
-                  transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)' 
+                  background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', 
+                  borderRadius: '10px',
+                  transition: 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1)' 
                 }} />
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                 {getXpProgress().remaining} more needed for Level {(user.level || 1) + 1}
               </div>
             </div>
           )}
 
-          <div className="handle-row">
+          <div className="handle-row" style={{ marginTop: '5px' }}>
             <span className="handle" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               {user.userid}
               {user.isVerified && <VerifiedBadge size={14} />}

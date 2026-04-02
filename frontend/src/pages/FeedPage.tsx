@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import CommentsModal from '../components/CommentsModal';
 import ShareModal from '../components/ShareModal';
 import PostDetailModal from '../components/PostDetailModal';
+import ContentOptionsModal from '../components/ContentOptionsModal';
 import { formatRelativeTime } from '../utils/timeUtils';
 import { FeedSkeleton } from '../components/Skeletons';
 import Linkify from '../components/Linkify';
@@ -75,6 +76,7 @@ const FeedPage: React.FC = () => {
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [activeSharePost, setActiveSharePost] = useState<string | null>(null);
   const [activeDetailPost, setActiveDetailPost] = useState<any | null>(null);
+  const [activeOptionsPost, setActiveOptionsPost] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -186,8 +188,9 @@ const FeedPage: React.FC = () => {
         ) : (
           posts.map(post => (
             <article key={post._id} className="post-card">
-              <div className="post-header" onClick={() => navigate(`/profile/${post.author.userid}`)} style={{ cursor: 'pointer' }}>
-                <img src={getOptimizedAvatarUrl(post.author.profilePic) || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt={post.author.name} className="post-avatar" loading="lazy" />
+              <div className="post-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div onClick={() => navigate(`/profile/${post.author.userid}`)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src={getOptimizedAvatarUrl(post.author.profilePic) || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.userid || post.author.name)}&background=random`} alt={post.author.name} className="post-avatar" loading="lazy" />
                   <div className="post-user-info">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <h4 style={{ margin: 0 }}>{post.author.userid}</h4>
@@ -197,6 +200,13 @@ const FeedPage: React.FC = () => {
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{post.author.name}</p>
                     </div>
                   </div>
+                </div>
+                <button 
+                  onClick={() => setActiveOptionsPost(post._id)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '8px' }}
+                >
+                  <MoreHorizontal size={20} />
+                </button>
               </div>
               <div className="post-image-container" onClick={() => setActiveDetailPost(post)} style={{ cursor: 'pointer' }}>
                 {post.type === 'Image' && <img src={getOptimizedImageUrl(post.content, { width: 800 })} alt="Post content" className="post-image" loading="lazy" />}
@@ -275,6 +285,13 @@ const FeedPage: React.FC = () => {
           post={activeDetailPost} 
           onClose={() => setActiveDetailPost(null)} 
           onUpdate={() => queryClient.invalidateQueries({ queryKey: ['feed'] })}
+        />
+      )}
+      {activeOptionsPost && (
+        <ContentOptionsModal 
+          contentId={activeOptionsPost} 
+          contentType="post" 
+          onClose={() => setActiveOptionsPost(null)} 
         />
       )}
     </div>

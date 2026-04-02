@@ -138,6 +138,25 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
               )}
             </div>
           </div>
+        ) : msg.type === 'image' ? (
+          <div style={{ borderRadius: '12px', overflow: 'hidden', maxWidth: '300px', cursor: 'default' }}>
+            <img 
+              src={msg.media} 
+              alt="Sent image" 
+              style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', display: 'block' }} 
+              onClick={(e) => { e.stopPropagation(); window.open(msg.media, '_blank'); }}
+            />
+            {msg.text && <p style={{ margin: '8px 0 0 0', fontSize: '0.92rem', color: 'white' }}>{msg.text}</p>}
+          </div>
+        ) : msg.type === 'video' ? (
+          <div style={{ borderRadius: '12px', overflow: 'hidden', maxWidth: '300px', cursor: 'default', position: 'relative' }}>
+            <video 
+              src={msg.media} 
+              controls 
+              style={{ width: '100%', maxHeight: '400px', display: 'block' }} 
+            />
+            {msg.text && <p style={{ margin: '8px 0 0 0', fontSize: '0.92rem', color: 'white' }}>{msg.text}</p>}
+          </div>
         ) : (
           <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: '1.5', fontWeight: 500, letterSpacing: '0.01em', color: 'white' }}>{msg.text}</p>
         )}
