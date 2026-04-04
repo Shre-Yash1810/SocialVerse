@@ -3,6 +3,7 @@ import Post from '../models/Post';
 import { XP_LEVELS, XP_REWARDS } from '../utils/constants';
 import mongoose from 'mongoose';
 import Notification from '../models/Notification';
+import Comment from '../models/Comment';
 import { sendRealTimeNotification } from './socketService';
 
 const isMockMode = () => mongoose.connection.readyState !== 1;
@@ -33,8 +34,9 @@ class XPService {
   async handleInteraction(interactorId: string, authorId: string, action: 'LIKE' | 'COMMENT' | 'UNLIKE' | 'DELETE_COMMENT') {
     if (isMockMode()) return;
     
-    // 1. Strict Rule: Never award XP for self-engagement
-    if (interactorId.toString() === authorId.toString()) return;
+    // 1. Strict Rule: Never award XP for self-engagement (except for a single like)
+    const isSelfEngagement = interactorId.toString() === authorId.toString();
+    if (isSelfEngagement && action !== 'LIKE') return;
 
     const interactor = await User.findById(interactorId);
     if (!interactor) return;
@@ -65,7 +67,7 @@ class XPService {
   }
 
   /**
-   * Subtracts all XP earned from a post (likes and comments) when it is deleted.
+   * Subtracts only awarded XP (excludes self-comments and new users < 24h) when a post is deleted.
    */
   async handlePostDeletion(postId: string, authorId: string) {
     if (isMockMode()) return;
@@ -73,12 +75,27 @@ class XPService {
     const post = await Post.findById(postId);
     if (!post) return;
 
-    // Calculate total XP earned from this post
-    // Note: We only subtract for others' likes/comments (as self-engagement shouldn't have given XP)
-    const likesCount = post.likes.length;
-    const commentsCount = post.commentsCount || 0;
+    // 1. Calculate Likes XP (Only from others and users who aren't currently < 24h)
+    // Note: Since we now allow self-likes, we subtract for them too!
+    let likesToSubtract = 0;
+    for (const likerId of post.likes) {
+        const liker = await User.findById(likerId);
+        if (liker) {
+            const ageHours = (Date.now() - liker.createdAt.getTime()) / (1000 * 60 * 60);
+            if (ageHours >= 24) {
+                likesToSubtract++;
+            }
+        }
+    }
 
-    const pointsToSubtract = (likesCount * XP_REWARDS.LIKE) + (commentsCount * XP_REWARDS.COMMENT);
+    // 2. Calculate Comments XP (Only from others)
+    // We already query the DB for comments during deletion to be safe
+    const commentsFromOthersCount = await Comment.countDocuments({ 
+        post: post._id, 
+        author: { $ne: new mongoose.Types.ObjectId(authorId) } 
+    });
+
+    const pointsToSubtract = (likesToSubtract * XP_REWARDS.LIKE) + (commentsFromOthersCount * XP_REWARDS.COMMENT);
 
     if (pointsToSubtract > 0) {
       await this.addXP(authorId, -pointsToSubtract);

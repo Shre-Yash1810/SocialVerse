@@ -26,6 +26,12 @@ async function reconcileXp(targetUserId?: string, apply: boolean = false) {
     }
 
     for (const user of users) {
+      // Skip protected accounts (like admin/test accounts with custom XP)
+      if (user.userid === 'nebula_voyager') {
+          console.log(`\nSkipping protected user: @${user.userid}`);
+          continue;
+      }
+
       console.log(`\nReconciling XP for: ${user.name} (@${user.userid})`);
       console.log(`Current XP: ${user.xp}, Current Level: ${user.level}`);
 
@@ -36,14 +42,13 @@ async function reconcileXp(targetUserId?: string, apply: boolean = false) {
       let totalLikesFromOthers = 0;
 
       for (const post of userPosts) {
-          // Count likes excluding the author's own like
-          const othersLikes = post.likes.filter(id => id.toString() !== user._id.toString());
-          totalLikesFromOthers += othersLikes.length;
+          // Rule Update: All likes count (including self-likes) as they aren't farmable
+          totalLikesFromOthers += post.likes.length;
       }
       
       const likesXp = totalLikesFromOthers * XP_REWARDS.LIKE;
       reconciledXp += likesXp;
-      console.log(`- Likes (from others): ${totalLikesFromOthers} (${likesXp} XP)`);
+      console.log(`- Likes (incl. self): ${totalLikesFromOthers} (${likesXp} XP)`);
 
       // 2. Calculate XP from Comments on their posts (Only from others)
       let totalCommentsFromOthers = 0;
