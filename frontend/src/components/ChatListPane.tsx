@@ -5,6 +5,7 @@ import api from '../services/api';
 import { useUser } from '../context/UserContext';
 import MomentBar from './MomentBar';
 import { ChatListSkeleton } from './ChatSkeletons';
+import { getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 
 interface ChatListPaneProps {
   activeChatId?: string;
@@ -50,6 +51,21 @@ const ChatListPane: React.FC<ChatListPaneProps> = ({ activeChatId, onChatClick, 
   const handleChatSelect = (chatId: string) => {
     if (onChatClick) onChatClick(chatId);
     else navigate(`/chat/${chatId}`);
+  };
+
+  const renderLastMessage = (chat: any) => {
+    const lastMsg = chat.lastMessage;
+    if (!lastMsg) return 'Start chatting...';
+    
+    // Determine the sender prefix if needed (for groups)
+    const senderName = chat.isGroup ? (String(lastMsg.sender?._id || lastMsg.sender) === String(user?._id) ? 'You: ' : `${lastMsg.sender?.name || 'User'}: `) : '';
+
+    if (lastMsg.type === 'image') return `${senderName}📷 sent an image`;
+    if (lastMsg.type === 'video') return `${senderName}🎥 sent a video`;
+    if (lastMsg.type === 'post_share') return `${senderName}📤 shared a post`;
+    if (lastMsg.type === 'emoji') return `${senderName}${lastMsg.text || '✨ sent an emoji'}`;
+    
+    return `${senderName}${lastMsg.text || 'New message...'}`;
   };
 
   return (
@@ -133,7 +149,7 @@ const ChatListPane: React.FC<ChatListPaneProps> = ({ activeChatId, onChatClick, 
               }}
             >
               <img 
-                src={chat.isGroup ? (chat.groupPic || 'https://ui-avatars.com/api/?name=Group') : (chat.participants.find((p: any) => p.userid !== user?.userid)?.profilePic || `https://ui-avatars.com/api/?name=${chat.participants.find((p: any) => p.userid !== user?.userid)?.userid}`)}
+                src={getOptimizedAvatarUrl(chat.isGroup ? chat.groupPic : chat.participants.find((p: any) => p.userid !== user?.userid)?.profilePic) || `https://ui-avatars.com/api/?name=${chat.isGroup ? 'Group' : chat.participants.find((p: any) => p.userid !== user?.userid)?.userid}`}
                 alt=""
                 style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover' }}
               />
@@ -147,7 +163,7 @@ const ChatListPane: React.FC<ChatListPaneProps> = ({ activeChatId, onChatClick, 
                   </span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: chat.isRead ? '#64748b' : '#0f172a', fontWeight: chat.isRead ? 400 : 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {chat.lastMessage?.text || 'Start chatting...'}
+                  {renderLastMessage(chat)}
                 </p>
               </div>
               {!chat.isRead && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, FileText, ArrowLeft } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
+import { getOptimizedImageUrl, getOptimizedAvatarUrl } from '../utils/cloudinaryUtils';
 
 interface MessageBubbleProps {
   msg: any;
@@ -12,18 +13,19 @@ interface MessageBubbleProps {
   handleLongPressEnd: () => void;
   handleUnsendMessage: (id: string) => void;
   setActiveSharedContent: (content: any) => void;
+  onImageClick: (url: string) => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
   msg, isMe, selectedMessageId, hoveredMessageId,
   setHoveredMessageId, handleLongPressStart, handleLongPressEnd,
-  handleUnsendMessage, setActiveSharedContent
+  handleUnsendMessage, setActiveSharedContent, onImageClick
 }) => {
   return (
     <div style={{ marginLeft: isMe ? 'auto' : '0', alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '75%', display: 'flex', gap: '8px', marginBottom: '12px', width: 'fit-content' }}>
       {!isMe && (
         <div style={{ width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, alignSelf: 'flex-end', marginBottom: '4px' }}>
-          <img src={msg.sender?.profilePic || `https://ui-avatars.com/api/?name=${msg.sender?.userid}&size=64`} alt="" style={{ width: '100%', height: '100%' }} />
+          <img src={getOptimizedAvatarUrl(msg.sender?.profilePic) || `https://ui-avatars.com/api/?name=${msg.sender?.userid}&size=64`} alt="" style={{ width: '100%', height: '100%' }} />
         </div>
       )}
       <div
@@ -111,7 +113,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         {msg.type === 'post_share' && msg.sharedPost ? (
           <div onClick={() => setActiveSharedContent(msg.sharedPost)} style={{ cursor: 'pointer' }}>
             <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)' }}>
-              <img src={msg.sharedPost.author?.profilePic || `https://ui-avatars.com/api/?name=${msg.sharedPost.author?.userid}`} style={{ width: '24px', height: '24px', borderRadius: '50%' }} alt="" />
+              <img src={getOptimizedAvatarUrl(msg.sharedPost.author?.profilePic) || `https://ui-avatars.com/api/?name=${msg.sharedPost.author?.userid}`} style={{ width: '24px', height: '24px', borderRadius: '50%' }} alt="" />
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{msg.sharedPost.author?.userid}</span>
                 {msg.sharedPost.author?.isVerified && <VerifiedBadge size={12} />}
@@ -124,7 +126,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.3)', borderRadius: '50%', padding: '8px' }}><Play size={20} color="white" fill="white" /></div>
                 </>
               ) : msg.sharedPost.type?.toLowerCase() === 'image' ? (
-                <img src={msg.sharedPost.content} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                <img src={getOptimizedImageUrl(msg.sharedPost.content, { width: 600 })} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
               ) : (
                 <div style={{ padding: '20px', color: 'white', backgroundColor: '#1e293b', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   <FileText size={40} style={{ marginBottom: '12px', opacity: 0.9 }} />
@@ -141,10 +143,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
         ) : msg.type === 'image' ? (
           <div style={{ borderRadius: '12px', overflow: 'hidden', maxWidth: '300px', cursor: 'default' }}>
             <img 
-              src={msg.media} 
+              src={getOptimizedImageUrl(msg.media, { width: 600 })} 
               alt="Sent image" 
               style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', display: 'block' }} 
-              onClick={(e) => { e.stopPropagation(); window.open(msg.media, '_blank'); }}
+              onClick={(e) => { e.stopPropagation(); onImageClick(msg.media); }}
             />
             {msg.text && <p style={{ margin: '8px 0 0 0', fontSize: '0.92rem', color: 'white' }}>{msg.text}</p>}
           </div>

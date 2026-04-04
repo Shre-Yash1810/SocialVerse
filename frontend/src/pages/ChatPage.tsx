@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import { useChat } from '../context/ChatContext';
 import ChatHeader from '../components/chat/ChatHeader';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
+import ImageViewerModal from '../components/ImageViewerModal';
 
 interface SharedPost {
   _id: string;
@@ -75,7 +76,7 @@ const ChatPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   const [actionMessage, setActionMessage] = useState<Message | null>(null);
-
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
   const virtuosoRef = useRef<any>(null);
 
   // Fetch Chat Details
@@ -232,11 +233,11 @@ const ChatPage: React.FC = () => {
     },
   });
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = useCallback((text: string) => {
     sendMutation.mutate(text);
-  };
+  }, [sendMutation]);
 
-  const handleMediaSelect = (file: File) => {
+  const handleMediaSelect = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -245,7 +246,7 @@ const ChatPage: React.FC = () => {
       sendMediaMutation.mutate({ media: base64String, type });
     };
     reader.readAsDataURL(file);
-  };
+  }, [sendMediaMutation]);
 
   const handleLongPressStart = (messageId: string) => {
     const timer = setTimeout(() => {
@@ -263,6 +264,10 @@ const ChatPage: React.FC = () => {
       setLongPressTimer(null);
     }
   };
+
+  const handleImageClick = useCallback((url: string) => {
+    setViewingImage(url);
+  }, []);
 
   if (isChatLoading || isMessagesLoading) {
     return (
@@ -315,6 +320,7 @@ const ChatPage: React.FC = () => {
           chatAvatar={chatAvatar}
           chatName={chatName}
           otherParticipantId={otherParticipant?.userid || ''}
+          onImageClick={handleImageClick}
         />
       </div>
 
@@ -328,6 +334,7 @@ const ChatPage: React.FC = () => {
 
       {isGroupInfoOpen && chat && <GroupInfoModal chat={chat} onClose={() => setIsGroupInfoOpen(false)} currentUser={user} onUpdate={() => queryClient.invalidateQueries({ queryKey: ['chat', chatId] })} />}
       {activeSharedContent && (activeSharedContent.type === 'Blog' ? <BlogDetailModal post={activeSharedContent} onClose={() => setActiveSharedContent(null)} /> : <PostDetailModal post={activeSharedContent} onClose={() => setActiveSharedContent(null)} />)}
+      {viewingImage && <ImageViewerModal imageUrl={viewingImage} onClose={() => setViewingImage(null)} />}
 
       {actionMessage && (
         <>

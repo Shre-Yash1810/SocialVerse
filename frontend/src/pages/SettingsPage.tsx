@@ -479,9 +479,9 @@ const SettingsPage: React.FC = () => {
 
     return (
       <div className="feedback-view-container">
-        <div className="settings-page-header" style={{ position: 'relative', background: 'transparent', border: 'none', padding: '0 0 20px 0' }}>
+        <div className="settings-page-header">
           <button className="back-btn" onClick={onBack}><ChevronLeft size={24} /></button>
-          <h2 style={{ marginRight: '40px' }}>Feedback & Support</h2>
+          <h2>Feedback & Support</h2>
         </div>
 
         <div className="feedback-intro">

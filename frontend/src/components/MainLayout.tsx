@@ -31,7 +31,7 @@ const MainLayout: React.FC = React.memo(() => {
   
   return (
     <div className="app-layout">
-      {!isChatView && <Navbar mode={getNavbarMode()} onMoreClick={onMoreClick || undefined} onCreateClick={onCreateClick || undefined} />}
+      {!isChatView && !isDashboardView && <Navbar mode={getNavbarMode()} onMoreClick={onMoreClick || undefined} onCreateClick={onCreateClick || undefined} />}
       <main className="main-content">
         <Outlet />
       </main>

@@ -15,6 +15,7 @@ interface MessageListProps {
   chatAvatar: string;
   chatName: string;
   otherParticipantId: string;
+  onImageClick: (url: string) => void;
 }
 
 const MessageList = forwardRef<any, MessageListProps>(({
@@ -29,7 +30,8 @@ const MessageList = forwardRef<any, MessageListProps>(({
   setActiveSharedContent,
   chatAvatar,
   chatName,
-  otherParticipantId
+  otherParticipantId,
+  onImageClick
 }, ref) => {
   const virtuosoRef = useRef<any>(null);
 
@@ -80,6 +82,7 @@ const MessageList = forwardRef<any, MessageListProps>(({
             handleLongPressEnd={handleLongPressEnd}
             handleUnsendMessage={() => handleUnsendMessage(msg)}
             setActiveSharedContent={setActiveSharedContent}
+            onImageClick={onImageClick}
           />
         );
       }}
