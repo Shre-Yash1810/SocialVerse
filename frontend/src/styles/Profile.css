@@ -152,7 +152,8 @@
 
 .profile-identity {
   text-align: center;
-  margin-bottom: 5px;
+  margin: 10px auto 15px;
+  /* Reduced margin */
   animation: slideUp 0.8s ease-out;
 }
 
@@ -160,8 +161,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 15px;
+  margin-bottom: 8px;
 }
 
 .display-name {
@@ -175,11 +176,10 @@
 }
 
 .level-badge {
-  font-size: 0.75rem;
-  /* Smaller badge */
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 10px;
+  padding: 3px 8px;
+  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
@@ -323,21 +323,45 @@
 
   .profile-header {
     flex-direction: row;
-    /* Keep row for 3-column look */
     justify-content: space-between;
-    gap: 15px;
-    margin-bottom: 40px;
+    align-items: center;
+    gap: 5px;
+    /* Minimal gap */
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 0 8px;
+    /* Tighter side padding */
   }
 
   .profile-action-left,
   .profile-stats-right-vertical {
     flex: 1;
+    min-width: 0;
+    display: flex;
+  }
+
+  .profile-action-left {
+    justify-content: flex-start;
   }
 
   .profile-stats-right-vertical {
     flex-direction: column;
-    gap: 15px;
-    align-items: center;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .profile-pic-container {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    padding: 0 5%;
+    /* Breath room for the pic */
+  }
+
+  /* Reverted to match desktop/original size as requested */
+  .profile-pic-ring {
+    width: clamp(140px, 30vw, 160px);
+    height: clamp(140px, 30vw, 160px);
   }
 
   .stat-value-large {
@@ -349,13 +373,31 @@
   }
 
   .glass-btn {
-    padding: 8px 12px;
-    font-size: 0.75rem;
-    border-radius: 8px;
+    padding: 8px 12px; /* As per user screenshot */
+    font-size: 0.75rem; /* As per user screenshot */
+    border-radius: 8px; /* As per user screenshot */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    gap: 6px; /* Slightly tighter gap to save space */
+    width: auto;
+    max-width: 90px; /* Constrain width to ensure it remains compact */
+    height: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+  }
+
+  .glass-btn span {
+    white-space: normal;
+    line-height: 1.1;
+    display: block;
   }
 
   .display-name {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .posts-grid {
@@ -365,7 +407,9 @@
   }
 
   .content-tabs {
-    gap: 20px;
+    gap: 0;
+    justify-content: space-around;
+    padding: 0 10px;
   }
 
   .tab-item {
@@ -626,21 +670,27 @@ input:checked+.slider:before {
 /* Premium Refined Identity */
 .display-name-refined {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 900;
   color: #1e293b;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 0;
+  margin: 0;
   line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .display-name-refined {
+    font-size: 1.4rem;
+  }
 }
 
 .level-badge-celestial {
   display: inline-flex;
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 50px;
   background: white;
   color: #1e293b;
@@ -648,7 +698,7 @@ input:checked+.slider:before {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .level-badge-celestial:hover {

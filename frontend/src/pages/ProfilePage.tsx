@@ -181,6 +181,10 @@ const ProfilePage: React.FC = () => {
     return { current, target, percentage, remaining };
   };
 
+  const postCount = userPosts.filter((p: any) => p.type === 'Image').length;
+  const byteCount = userPosts.filter((p: any) => p.type === 'Video').length;
+  const blogCount = userPosts.filter((p: any) => p.type === 'Blog').length;
+
   const filteredPosts = userPosts.filter((post: any) => {
     if (activeTab === 'posts') return post.type === 'Image';
     if (activeTab === 'bytes') return post.type === 'Video';
@@ -248,17 +252,16 @@ const ProfilePage: React.FC = () => {
           </div>
         </section>
 
-        <section className="profile-identity" style={{ textAlign: 'center', margin: '20px auto 30px' }}>
-          <div className="name-badge-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '8px' }}>
+        <section className="profile-identity">
+          <div className="name-badge-row">
             <div 
               className="level-badge-celestial" 
               onClick={() => setShowXpBar(!showXpBar)}
-              style={{ marginBottom: 0, padding: '6px 14px' }}
               title="Click to view XP"
             >
               Lv. {user.level || 1}
             </div>
-            <h1 className="display-name-refined" style={{ margin: 0, fontSize: '2.2rem', fontWeight: 900 }}>
+            <h1 className="display-name-refined">
               {user.name}
             </h1>
           </div>
@@ -383,13 +386,13 @@ const ProfilePage: React.FC = () => {
         <section className="profile-content">
           <div className="content-tabs">
             <button className={`tab-item ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>
-              <Grid size={18} /> <span>Posts</span>
+              <Grid size={18} /> <span>Posts ({postCount})</span>
             </button>
             <button className={`tab-item ${activeTab === 'bytes' ? 'active' : ''}`} onClick={() => setActiveTab('bytes')}>
-              <Film size={18} /> <span>Bytes</span>
+              <Film size={18} /> <span>Bytes ({byteCount})</span>
             </button>
             <button className={`tab-item ${activeTab === 'blogs' ? 'active' : ''}`} onClick={() => setActiveTab('blogs')}>
-              <FileText size={18} /> <span>Blogs</span>
+              <FileText size={18} /> <span>Blogs ({blogCount})</span>
             </button>
           </div>
 
