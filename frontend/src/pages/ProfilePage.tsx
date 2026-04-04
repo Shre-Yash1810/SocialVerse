@@ -231,7 +231,7 @@ const ProfilePage: React.FC = () => {
           <div className="profile-pic-container">
             <div className="profile-pic-ring" onClick={() => setIsPreviewOpen(true)}>
               {user.profilePic ? (
-                <img src={getOptimizedAvatarUrl(user.profilePic)} alt={user.name} className="main-profile-pic" />
+                <img src={getOptimizedAvatarUrl(user.profilePic, { width: 1200 })} alt={user.name} className="main-profile-pic" />
               ) : (
                 <div className="main-profile-pic-placeholder">
                   <UserIcon size={40} strokeWidth={1.5} />

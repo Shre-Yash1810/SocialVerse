@@ -18,6 +18,19 @@ export const getOptimizedImageUrl = (url: string | undefined, options: { width?:
   return `${parts[0]}/upload/${transformations}/${parts[1]}`;
 };
 
-export const getOptimizedAvatarUrl = (url: string | undefined) => {
-  return getOptimizedImageUrl(url, { width: 100, quality: 'auto:low' });
+/**
+ * Specialized avatar optimization with face detection and high resolution
+ */
+export const getOptimizedAvatarUrl = (url: string | undefined, options: { width?: number; quality?: string } = {}) => {
+  if (!url || !url.includes('cloudinary.com')) return url || '';
+  
+  const { width = 800, quality = 'auto:best' } = options;
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+
+  // c_fill: fill the dimensions
+  // g_face: center on face
+  // dpr_auto: handle Retina displays automatically
+  const transformations = `c_fill,g_face,w_${width},q_${quality},f_auto,dpr_auto`;
+  return `${parts[0]}/upload/${transformations}/${parts[1]}`;
 };

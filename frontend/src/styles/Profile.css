@@ -655,16 +655,20 @@ input:checked+.slider:before {
 }
 
 .preview-content {
-  max-width: 90vw;
-  max-height: 90vh;
+  width: min(90vw, 500px); /* Constrained for desktop, responsive on mobile */
+  aspect-ratio: 1/1; /* Keep it square like a profile pic */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .preview-content img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  width: 100% !important;
+  height: 100% !important; 
+  object-fit: cover !important; /* Fill the square container for consistent UI */
+  border-radius: 24px !important; /* Premium rounded corners matching mobile screenshot */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+  background-color: var(--bg-surface);
 }
 
 /* Premium Refined Identity */
